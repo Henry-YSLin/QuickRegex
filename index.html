@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Quick Regex</title>
+  <meta charset="UTF-8">
+  <link rel="manifest" href="manifest.json">
+
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="Quick Regex">
+  <meta name="apple-mobile-web-app-title" content="Quick Regex">
+  <meta name="theme-color" content="#7cb342">
+  <meta name="msapplication-navbutton-color" content="#7cb342">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="msapplication-starturl" content="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon.png">
+  <link rel="apple-touch-icon" type="image/png" sizes="192x192" href="favicon.png">
+
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+
+<body faded="true">
+
+  <div id="endscreen" style="display:none;">
+    <div class="background-wipe">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+    <h1>Congratulations!</h1>
+    <p>You have completed the Quick Regex tutorial</p>
+  </div>
+
+  <div id="grid">
+
+    <header>
+      <h2 id="title">Lesson 1 - Introduction</h2>
+      <p id="description">Regular expressions are patterns used to match character combinations in strings.</p>
+    </header>
+
+    <nav>
+      <div class="nav-list">
+        <template id="nav-template">
+          <div class="nav-item" unlocked="false" current="false" passed="false">
+            <div class="nav-title"></div>
+            <i class="material-icons checkmark">done</i>
+          </div>
+        </template>
+      </div>
+    </nav>
+
+    <main>
+      <input class="regex-editor" type="text" id="editor" placeholder="Type Regex here..." autofocus>
+      <pre class="regex" id="highlighting"></pre>
+      <p>Write a Regex expression that matches the <mark class="target-highlight">targets</mark><br>Your regex matches
+        will be shown in <mark class="input-highlight">blue</mark></p>
+      <div class="case-list">
+        <template id="case-template">
+          <div class="case" passed="false">
+            <p class="case-text"></p>
+            <i class="material-icons checkmark">check_circle</i>
+            <i class="material-icons checkmark-outline">check_circle_outline</i>
+          </div>
+        </template>
+      </div>
+    </main>
+
+    <footer>
+      <div id="progress-bar">
+        <div style="width:50%">
+          <div id="progress-bar-text">
+            50%
+          </div>
+        </div>
+      </div>
+      <div class="fab-btn" enabled="false" onclick="nextlevel_onclick()">
+        <i class="material-icons fas">arrow_forward</i>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/regex-colorizer@0.3.1/regex-colorizer.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js"
+    integrity="sha256-IdYuEFP3WJ/mNlzM18Y20Xgav3h5pgXYzl8fW4GnuPo=" crossorigin="anonymous"></script>
+  <script defer src="levels.js"></script>
+  <script defer src="index.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/serviceWorker.js').then(function (registration) {
+          // Registration was successful
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        }, function (err) {
+          // registration failed :(
+          console.log('ServiceWorker registration failed: ', err);
+        });
+      });
+    }
+  </script>
+</body>
+
+</html>

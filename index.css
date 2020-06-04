@@ -61,6 +61,38 @@ input.regex-editor:focus {
   box-shadow: 0px 4px 10px #00330040;
 }
 
+.message {
+  margin: -20px 0 0 0;
+  grid-area: message;
+  color: #666666;
+}
+
+.message.fade-in {
+  animation: fade-in 0.25s ease-in-out forwards;
+}
+
+.message.fade-out {
+  animation: fade-out 0.25s ease-in-out forwards;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 .case-list {
   display: flex;
   flex-wrap: wrap;
@@ -117,21 +149,25 @@ input.regex-editor:focus {
 
 .input-highlight {
   background-color: rgba(106, 216, 253, 0.404);
-  border-left: 2px solid rgba(0, 0, 0, 0);
-  border-right: 2px solid rgba(0, 0, 0, 0);
   border-left: 2px solid rgba(17, 165, 214, 0.5);
   border-right: 2px solid rgb(17, 165, 214, 0.5);
-  /* border-left: 2px dotted rgb(17, 165, 214);
-  border-right: 2px dotted rgb(17, 165, 214); */
 }
 
 .target-highlight {
-  text-decoration: underline rgb(18, 150, 18) dotted;
   background-color: #dbbf4159;
-  /* border-left: 2px solid rgba(0, 0, 0, 0);
-  border-right: 2px solid rgba(0, 0, 0, 0); */
   border-left: 1.5px solid rgb(143, 123, 37, 0.5);
   border-right: 1.5px solid rgb(143, 123, 37, 0.5);
+}
+
+.input-group-highlight {
+  background-color: rgba(46, 190, 238, 0.404);
+  text-decoration: underline rgb(22, 145, 185) dotted;
+}
+
+.target-group-highlight {
+  text-decoration: underline rgb(13, 158, 13) dotted;
+  background-color: #c9ad3359;
+  text-decoration: underline rgb(18, 150, 18) dotted;
 }
 
 html, body{
@@ -152,8 +188,8 @@ html, body{
   grid-template-rows: min-content auto min-content;
   gap: 0px;
   margin:0;
-  padding:0;
-  width: 100%;
+  padding:0 40px 0 0;
+  width: calc(100% - 40px);
   height: 100%;
   column-gap: 30px;
   font-family: 'Noto Sans', Calibri, sans-serif;
@@ -167,14 +203,15 @@ code {
 
 main {
   padding: 10px;
+  height: 100%;
   grid-area: main;
-  position: absolute;
-  top: 0;
+  width: 100%;
   display: grid;
   grid-template-areas:
   "top"
+  "message"
   "bottom";
-  grid-template-rows: 80px auto;
+  grid-template-rows: 80px min-content auto;
   align-items: center;
   gap: 10px 10px;
 }
@@ -262,7 +299,7 @@ nav{
 }
 
 .fab-btn{
-  margin: 50px;
+  margin: 50px 10px 50px 50px;
   grid-area: right;
   color: white;
   border-radius: 50%;
@@ -382,7 +419,7 @@ nav{
   font-weight: bolder;
   text-shadow: 0px 4px 0px rgba(0, 0, 0, 0.25);
   opacity: 0;
-  animation: fade-in 2s ease-in-out forwards;
+  animation: fade-in-with-shadows 2s ease-in-out forwards;
 }
 
 .endscreen p {
@@ -430,7 +467,7 @@ nav{
   animation-delay: 0.75s;
 }
 
-@keyframes fade-in {
+@keyframes fade-in-with-shadows {
   0% {
     text-shadow: 0px 4px 0px rgba(0, 0, 0, 0.25);
     opacity: 0;

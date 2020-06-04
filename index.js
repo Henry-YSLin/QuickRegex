@@ -1,3 +1,6 @@
+import quickRegex from './modules/levels.js';
+import MultiRegExp2 from './modules/multiRegExp2.esm.js';
+
 var caseList = document.querySelector('.case-list');
 var caseTemplate = document.querySelector('#case-template');
 var navList = document.querySelector('.nav-list');
@@ -9,6 +12,7 @@ var editor = document.getElementById('editor');
 var progressBarStrip = document.getElementById('progress-bar').querySelector('div');
 var progressBarText = progressBarStrip.querySelector('#progress-bar-text');
 var fab = document.querySelector('.fab-btn');
+var message = document.querySelector('.message');
 var cases = [];
 
 if (String.prototype.splice === undefined) {
@@ -102,6 +106,8 @@ async function navItem_onclick(listener) {
     }
   }
 }
+window.navItem_onclick = navItem_onclick;
+
 
 async function nextlevel_onclick() {
   if (fab.getAttribute('enabled') === 'true') {
@@ -127,6 +133,7 @@ async function nextlevel_onclick() {
     document.querySelector('body').setAttribute('faded', 'false');
   }
 }
+window.nextlevel_onclick = nextlevel_onclick;
 
 function loadLevel() {
   while (caseList.lastChild && caseList.lastChild.tagName != 'TEMPLATE') {
@@ -139,14 +146,14 @@ function loadLevel() {
   var currentLevel = quickRegex.levels[currentIdx];
   var levelState = quickRegex.savedState.levelStates[currentIdx];
 
+  title.innerHTML = 'Lesson ' + (currentIdx + 1) + ' - ' + currentLevel.title;
+  description.innerHTML = currentLevel.description;
+
   fab.setAttribute('enabled', 'false');
   editor.value = levelState.regex;
   highlighting.innerText = levelState.regex;
   updateHighlighting();
   editor.focus();
-
-  title.innerHTML = 'Lesson ' + (currentIdx + 1) + ' - ' + currentLevel.title;
-  description.innerHTML = currentLevel.description;
 
   currentLevel.cases.forEach(element => {
     var clone = caseTemplate.content.cloneNode(true);
@@ -176,9 +183,12 @@ function updateHighlighting() {
 }
 
 async function updateCases() {
+  var targetRegex = quickRegex.levels[quickRegex.savedState.currentLevel].targetRegex;
   if (verifyRegex(editor.value)) {
+    var matchTooMany = false;
+    var matchTooFew = false;
+    var wrongCaptureGroup = false;
     var inputRegex = new RegExp(editor.value, 'g');
-    var targetRegex = quickRegex.levels[quickRegex.savedState.currentLevel].targetRegex;
     var numPassed = 0;
     var total = 0;
     await Promise.all(cases.map(async element => {
@@ -189,43 +199,156 @@ async function updateCases() {
       const caseText = element.text.innerText;
       const matchesA = Array.from(caseText.matchAll(targetRegex));
       const matchesB = Array.from(caseText.matchAll(inputRegex));
-      var passedCases = matchesA.reduce((accumulator, currentValue) => {
+
+      let regex2A = new MultiRegExp2(targetRegex);
+      let matches2A = (() => {
+        var arr = [];
+        var pos = regex2A.regexp.lastIndex;
+        var res = regex2A.execForAllGroups(caseText, true);
+        while (res) {
+          if (regex2A.regexp.lastIndex === pos) {
+            regex2A.regexp.lastIndex++;
+          }
+          arr.push(...res.slice(1));
+          pos = regex2A.regexp.lastIndex;
+          res = regex2A.execForAllGroups(caseText, true);
+        }
+        return arr;
+      })();
+
+      if (matches2A)
+        await markRangesAsync(element.markjs, matches2A.map(x => {
+          return {
+            start: x.start,
+            length: x.end - x.start
+          }
+        }), { "className": "target-group-highlight" });
+
+      let regex2B = new MultiRegExp2(inputRegex);
+      let matches2B = (() => {
+        var arr = [];
+        var pos = regex2B.regexp.lastIndex;
+        var res = regex2B.execForAllGroups(caseText, true);
+        while (res) {
+          if (regex2B.regexp.lastIndex === pos) {
+            regex2B.regexp.lastIndex++;
+          }
+          arr.push(...res.slice(1));
+          pos = regex2B.regexp.lastIndex;
+          res = regex2B.execForAllGroups(caseText, true);
+        }
+        return arr;
+      })();
+
+      if (matches2B)
+        await markRangesAsync(element.markjs, matches2B.map(x => {
+          return {
+            start: x.start,
+            length: x.end - x.start
+          }
+        }), { "className": "input-group-highlight" });
+
+
+      var matchesAPass = matchesA.reduce((accumulator, currentValue) => {
         return accumulator +
           ((matchesB.find(x => x.index === currentValue.index && x[0] === currentValue[0])) ? 1 : 0);
-      }, 0) +
-        matchesB.reduce((accumulator, currentValue) => {
-          return accumulator +
-            ((matchesA.find(x => x.index === currentValue.index && x[0] === currentValue[0])) ? 1 : 0);
-        }, 0);
+      }, 0);
+      var matchesBPass = matchesB.reduce((accumulator, currentValue) => {
+        return accumulator +
+          ((matchesA.find(x => x.index === currentValue.index && x[0] === currentValue[0])) ? 1 : 0);
+      }, 0);
+      var matches2APass = matches2A.reduce((accumulator, currentValue) => {
+        return accumulator +
+          ((matches2B.find(x => x.start === currentValue.start && x.end === currentValue.end)) ? 1 : 0);
+      }, 0);
 
-      if (passedCases === matchesA.length + matchesB.length) {
+      if (matchesAPass + matchesBPass + matches2APass === matchesA.length + matchesB.length + matches2A.length) {
         element.caseElement.setAttribute('passed', 'true');
       }
       else {
         element.caseElement.setAttribute('passed', 'false');
+        if (matchesAPass < matchesA.length) {
+          matchTooFew = true;
+        }
+        else if (matchesBPass < matchesB.length) {
+          matchTooMany = true;
+        }
+        else if (matches2APass < matches2A.length) {
+          wrongCaptureGroup = true;
+        }
       }
-      numPassed += passedCases;
-      total += matchesA.length + matchesB.length;
+      numPassed += matchesAPass + matchesBPass + matches2APass;
+      total += matchesA.length + matchesB.length + matches2A.length;
     }));
     progressBarStrip.style.width = Math.round(numPassed * 100 / total) + '%';
     progressBarText.innerText = Math.round(numPassed * 100 / total) + '%';
     if (numPassed === total) {
       fab.setAttribute('enabled', 'true');
+      updateMessage('Congrats! Problem solved.');
     }
     else {
       fab.setAttribute('enabled', 'false');
+      if (editor.value) {
+        if (matchTooMany) {
+          updateMessage('Your regex has too many matches');
+        }
+        else if (matchTooFew) {
+          updateMessage('Your regex doesn\'t match all targets');
+        }
+        else if (wrongCaptureGroup) {
+          updateMessage('Your regex matches correctly, but the capture groups are wrong');
+        }
+        else {
+          updateMessage('Some test cases failed');
+        }
+      }
+      else {
+        updateMessage('Type something to get started');
+      }
     }
   }
   else {
     await Promise.all(cases.map(async element => {
       await unmarkAsync(element.markjs, {});
       await markRegExpAsync(element.markjs, targetRegex, { "className": "target-highlight", "acrossElements": "true" });
+
+      const caseText = element.text.innerText;
+
+      let regex2A = new MultiRegExp2(targetRegex);
+      let matches2A = regex2A.execForAllGroups(caseText);
+
+      if (matches2A)
+        await markRangesAsync(element.markjs, matches2A.map(x => {
+          return {
+            start: x.start,
+            length: x.end - x.start
+          }
+        }), { "className": "target-group-highlight" });
+
       element.caseElement.setAttribute('passed', 'false');
     }));
     progressBarStrip.style.width = '0%';
     progressBarText.innerText = '0%';
     fab.setAttribute('enabled', 'false');
+    if (editor.value) {
+      updateMessage('Your regex is invalid!');
+    }
+    else {
+      updateMessage('Type something to get started');
+    }
   }
+}
+
+function updateMessage(msg) {
+  if (message.innerText !== msg)
+    setTimeout(async () => {
+      message.classList.remove('fade-in');
+      message.classList.add('fade-out');
+      await sleep(250);
+      message.innerText = msg;
+      message.classList.remove('fade-out');
+      message.classList.add('fade-in');
+    }, 0);
 }
 
 function verifyRegex(regex) {
@@ -341,6 +464,15 @@ function unmarkAsync(markInstance, options) {
 function markRegExpAsync(markInstance, regex, options) {
   return new Promise(function (resolve, reject) {
     markInstance.markRegExp(regex, {
+      ...options,
+      done: resolve
+    });
+  });
+}
+
+function markRangesAsync(markInstance, ranges, options) {
+  return new Promise(function (resolve, reject) {
+    markInstance.markRanges(ranges, {
       ...options,
       done: resolve
     });

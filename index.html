@@ -38,10 +38,48 @@
 
   <div id="grid">
 
-    <header>
-      <h2 id="title">Lesson 1 - Introduction</h2>
-      <p id="description">Regular expressions are patterns used to match character combinations in strings.</p>
-    </header>
+    <div class="page">
+      <header>
+        <h2 id="title">Lesson 1 - Introduction</h2>
+        <p id="description">Regular expressions are patterns used to match character combinations in strings.</p>
+      </header>
+
+      <main>
+        <input class="regex-editor" type="text" id="editor" placeholder="Type Regex here..." autofocus>
+        <pre class="regex" id="highlighting"></pre>
+        <div class="message">
+          Type something to get started
+        </div>
+        <div class="case-list">
+          <template id="case-template">
+            <div class="case" passed="false">
+              <p class="case-text"></p>
+              <i class="material-icons checkmark">check_circle</i>
+              <i class="material-icons checkmark-outline">check_circle_outline</i>
+            </div>
+          </template>
+        </div>
+        <p>Write a Regex expression that matches the <mark class="target-highlight">targets</mark><br>
+          Your regex matches will be shown in <mark class="input-highlight">blue</mark><br>
+          If the match contains <mark class="target-highlight"><mark class="target-group-highlight">capture
+              groups</mark></mark>,
+          you will also need to <mark class="input-highlight"><mark class="input-group-highlight">match</mark></mark>
+          them.</p>
+      </main>
+
+      <footer>
+        <div id="progress-bar">
+          <div style="width:50%">
+            <div id="progress-bar-text">
+              50%
+            </div>
+          </div>
+        </div>
+        <div class="fab-btn" enabled="false" onclick="nextlevel_onclick()">
+          <i class="material-icons fas">arrow_forward</i>
+        </div>
+      </footer>
+    </div>
 
     <nav>
       <div class="nav-list">
@@ -53,42 +91,6 @@
         </template>
       </div>
     </nav>
-
-    <main>
-      <input class="regex-editor" type="text" id="editor" placeholder="Type Regex here..." autofocus>
-      <pre class="regex" id="highlighting"></pre>
-      <div class="message">
-        Type something to get started
-      </div>
-      <div class="case-list">
-        <template id="case-template">
-          <div class="case" passed="false">
-            <p class="case-text"></p>
-            <i class="material-icons checkmark">check_circle</i>
-            <i class="material-icons checkmark-outline">check_circle_outline</i>
-          </div>
-        </template>
-      </div>
-      <p>Write a Regex expression that matches the <mark class="target-highlight">targets</mark><br>
-        Your regex matches will be shown in <mark class="input-highlight">blue</mark><br>
-        If the match contains <mark class="target-highlight"><mark class="target-group-highlight">capture
-            groups</mark></mark>,
-        you will also need to <mark class="input-highlight"><mark class="input-group-highlight">match</mark></mark>
-        them.</p>
-    </main>
-
-    <footer>
-      <div id="progress-bar">
-        <div style="width:50%">
-          <div id="progress-bar-text">
-            50%
-          </div>
-        </div>
-      </div>
-      <div class="fab-btn" enabled="false" onclick="nextlevel_onclick()">
-        <i class="material-icons fas">arrow_forward</i>
-      </div>
-    </footer>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/regex-colorizer@0.3.1/regex-colorizer.min.js"></script>

@@ -9,6 +9,8 @@ var title = document.querySelector('#title');
 var description = document.querySelector('#description');
 var highlighting = document.getElementById('highlighting');
 var editor = document.getElementById('editor');
+var main = document.querySelector('main');
+var progressBar = document.getElementById('progress-bar');
 var progressBarStrip = document.getElementById('progress-bar').querySelector('div');
 var progressBarText = progressBarStrip.querySelector('#progress-bar-text');
 var fab = document.querySelector('.fab-btn');
@@ -70,7 +72,7 @@ quickRegex.levels.forEach((element, index) => {
   navItem.setAttribute('index', index);
   navItem.addEventListener('click', navItem_onclick);
 
-  textElem.innerText = element.title;
+  textElem.innerHTML = element.title;
   element.navElement = navItem;
 
   navList.appendChild(clone);
@@ -128,6 +130,7 @@ async function nextlevel_onclick() {
       quickRegex.savedState.levelStates[quickRegex.savedState.currentLevel].unlocked = true;
       currentLevel.navElement.setAttribute('current', 'true');
       currentLevel.navElement.setAttribute('unlocked', 'true');
+      currentLevel.navElement.scrollIntoView();
       loadLevel();
     }
     document.querySelector('body').setAttribute('faded', 'false');
@@ -146,7 +149,10 @@ function loadLevel() {
   var currentLevel = quickRegex.levels[currentIdx];
   var levelState = quickRegex.savedState.levelStates[currentIdx];
 
-  title.innerHTML = 'Lesson ' + (currentIdx + 1) + ' - ' + currentLevel.title;
+  if (currentIdx === 0)
+    title.innerHTML = currentLevel.title;
+  else
+    title.innerHTML = 'Lesson ' + currentIdx + ' - ' + currentLevel.title;
   description.innerHTML = currentLevel.description;
 
   fab.setAttribute('enabled', 'false');
@@ -154,6 +160,15 @@ function loadLevel() {
   highlighting.innerText = levelState.regex;
   updateHighlighting();
   editor.focus();
+
+  if (currentLevel.cases.length === 0) {
+    main.style.display = 'none';
+    progressBar.style.display = 'none';
+  }
+  else {
+    main.style.display = 'grid';
+    progressBar.style.display = 'block';
+  }
 
   currentLevel.cases.forEach(element => {
     var clone = caseTemplate.content.cloneNode(true);
@@ -184,45 +199,66 @@ function updateHighlighting() {
 
 async function updateCases() {
   var targetRegex = quickRegex.levels[quickRegex.savedState.currentLevel].targetRegex;
-  if (verifyRegex(editor.value)) {
+  var flags = (targetRegex === null) ? 'g' : targetRegex.flags;
+  if (verifyRegex(editor.value, flags)) {
     var matchTooMany = false;
     var matchTooFew = false;
     var wrongCaptureGroup = false;
-    var inputRegex = new RegExp(editor.value, 'g');
+    var inputRegex = new RegExp(editor.value, flags);
     var numPassed = 0;
     var total = 0;
     await Promise.all(cases.map(async element => {
       await unmarkAsync(element.markjs, {});
       await markRegExpAsync(element.markjs, inputRegex, { "className": "input-highlight", "acrossElements": "true" });
-      await markRegExpAsync(element.markjs, targetRegex, { "className": "target-highlight", "acrossElements": "true" });
+      if (targetRegex !== null)
+        await markRegExpAsync(element.markjs, targetRegex, { "className": "target-highlight", "acrossElements": "true" });
 
       const caseText = element.text.innerText;
-      const matchesA = Array.from(caseText.matchAll(targetRegex));
+      const matchesA = (targetRegex === null) ? [] : Array.from(caseText.matchAll(targetRegex));
       const matchesB = Array.from(caseText.matchAll(inputRegex));
 
-      let regex2A = new MultiRegExp2(targetRegex);
-      let matches2A = (() => {
-        var arr = [];
-        var pos = regex2A.regexp.lastIndex;
-        var res = regex2A.execForAllGroups(caseText, true);
-        while (res) {
-          if (regex2A.regexp.lastIndex === pos) {
-            regex2A.regexp.lastIndex++;
+      let matches2A = [];
+      if (targetRegex !== null) {
+        let regex2A = new MultiRegExp2(targetRegex);
+        matches2A = (() => {
+          var arr = [];
+          var pos = regex2A.regexp.lastIndex;
+          var res = regex2A.execForAllGroups(caseText, true);
+          while (res) {
+            if (regex2A.regexp.lastIndex === pos) {
+              regex2A.regexp.lastIndex++;
+            }
+            arr.push(...res.slice(1));
+            pos = regex2A.regexp.lastIndex;
+            res = regex2A.execForAllGroups(caseText, true);
           }
-          arr.push(...res.slice(1));
-          pos = regex2A.regexp.lastIndex;
-          res = regex2A.execForAllGroups(caseText, true);
-        }
-        return arr;
-      })();
+          return arr;
+        })();
 
-      if (matches2A)
-        await markRangesAsync(element.markjs, matches2A.map(x => {
-          return {
-            start: x.start,
-            length: x.end - x.start
-          }
-        }), { "className": "target-group-highlight" });
+        if (matches2A)
+          await markRangesAsync(element.markjs, matches2A.map(x => {
+            if (x.start !== 0) {
+              return {
+                start: x.start,
+                length: x.end - x.start
+              };
+            }
+            else {   // dirty patch
+              if (caseText.substring(x.start, x.end) === x.match) {
+                return {
+                  start: x.start,
+                  length: x.end - x.start
+                };
+              }
+              else {
+                return {
+                  start: caseText.indexOf(x.match),
+                  length: x.match.length
+                };
+              }
+            }
+          }), { "className": "target-group-highlight" });
+      }
 
       let regex2B = new MultiRegExp2(inputRegex);
       let matches2B = (() => {
@@ -242,9 +278,25 @@ async function updateCases() {
 
       if (matches2B)
         await markRangesAsync(element.markjs, matches2B.map(x => {
-          return {
-            start: x.start,
-            length: x.end - x.start
+          if (x.start !== 0) {
+            return {
+              start: x.start,
+              length: x.end - x.start
+            };
+          }
+          else {   // dirty patch
+            if (caseText.substring(x.start, x.end) === x.match) {
+              return {
+                start: x.start,
+                length: x.end - x.start
+              };
+            }
+            else {
+              return {
+                start: caseText.indexOf(x.match),
+                length: x.match.length
+              };
+            }
           }
         }), { "className": "input-group-highlight" });
 
@@ -259,10 +311,13 @@ async function updateCases() {
       }, 0);
       var matches2APass = matches2A.reduce((accumulator, currentValue) => {
         return accumulator +
-          ((matches2B.find(x => x.start === currentValue.start && x.end === currentValue.end)) ? 1 : 0);
+          ((matches2B.find(x => x.start === currentValue.start && x.end === currentValue.end && x.match === currentValue.match)) ? 1 : 0);
       }, 0);
 
-      if (matchesAPass + matchesBPass + matches2APass === matchesA.length + matchesB.length + matches2A.length) {
+      if (targetRegex === null) {
+        element.caseElement.setAttribute('passed', 'true');
+      }
+      else if (matchesAPass + matchesBPass + matches2APass === matchesA.length + matchesB.length + matches2A.length) {
         element.caseElement.setAttribute('passed', 'true');
       }
       else {
@@ -280,9 +335,18 @@ async function updateCases() {
       numPassed += matchesAPass + matchesBPass + matches2APass;
       total += matchesA.length + matchesB.length + matches2A.length;
     }));
-    progressBarStrip.style.width = Math.round(numPassed * 100 / total) + '%';
-    progressBarText.innerText = Math.round(numPassed * 100 / total) + '%';
-    if (numPassed === total) {
+    if (targetRegex === null) {
+      progressBarStrip.style.width = '100%';
+      progressBarText.innerText = '100%';
+    } else {
+      progressBarStrip.style.width = Math.round(numPassed * 100 / total) + '%';
+      progressBarText.innerText = Math.round(numPassed * 100 / total) + '%';
+    }
+    if (targetRegex === null) {
+      fab.setAttribute('enabled', 'true');
+      updateMessage('Click continue when you are ready');
+    }
+    else if (numPassed === total) {
       fab.setAttribute('enabled', 'true');
       updateMessage('Congrats! Problem solved.');
     }
@@ -308,28 +372,51 @@ async function updateCases() {
     }
   }
   else {
-    await Promise.all(cases.map(async element => {
-      await unmarkAsync(element.markjs, {});
-      await markRegExpAsync(element.markjs, targetRegex, { "className": "target-highlight", "acrossElements": "true" });
+    if (targetRegex !== null) {
+      await Promise.all(cases.map(async element => {
+        await unmarkAsync(element.markjs, {});
+        await markRegExpAsync(element.markjs, targetRegex, { "className": "target-highlight", "acrossElements": "true" });
 
-      const caseText = element.text.innerText;
+        const caseText = element.text.innerText;
 
-      let regex2A = new MultiRegExp2(targetRegex);
-      let matches2A = regex2A.execForAllGroups(caseText);
+        let regex2A = new MultiRegExp2(targetRegex);
+        let matches2A = regex2A.execForAllGroups(caseText);
 
-      if (matches2A)
-        await markRangesAsync(element.markjs, matches2A.map(x => {
-          return {
-            start: x.start,
-            length: x.end - x.start
-          }
-        }), { "className": "target-group-highlight" });
+        if (matches2A)
+          await markRangesAsync(element.markjs, matches2A.map(x => {
+            if (x.start !== 0) {
+              return {
+                start: x.start,
+                length: x.end - x.start
+              };
+            }
+            else {   // dirty patch
+              if (caseText.substring(x.start, x.end) === x.match) {
+                return {
+                  start: x.start,
+                  length: x.end - x.start
+                };
+              }
+              else {
+                return {
+                  start: caseText.indexOf(x.match),
+                  length: x.match.length
+                };
+              }
+            }
+          }), { "className": "target-group-highlight" });
 
-      element.caseElement.setAttribute('passed', 'false');
-    }));
-    progressBarStrip.style.width = '0%';
-    progressBarText.innerText = '0%';
-    fab.setAttribute('enabled', 'false');
+        element.caseElement.setAttribute('passed', 'false');
+      }));
+      progressBarStrip.style.width = '0%';
+      progressBarText.innerText = '0%';
+      fab.setAttribute('enabled', 'false');
+    }
+    else {
+      progressBarStrip.style.width = '100%';
+      progressBarText.innerText = '100%';
+      fab.setAttribute('enabled', 'true');
+    }
     if (editor.value) {
       updateMessage('Your regex is invalid!');
     }
@@ -351,10 +438,10 @@ function updateMessage(msg) {
     }, 0);
 }
 
-function verifyRegex(regex) {
+function verifyRegex(regex, flags) {
   var isValid = true;
   try {
-    new RegExp(regex, 'g');
+    new RegExp(regex, flags);
   } catch (e) {
     isValid = false;
   }

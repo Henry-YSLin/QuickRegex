@@ -33,6 +33,10 @@ pre.regex {
   font-size:1.1em;
 }
 
+pre.case-text {
+  white-space: pre-wrap;
+}
+
 
 input.regex-editor {
   width: 100%;
@@ -153,10 +157,30 @@ input.regex-editor:focus {
   border-right: 2px solid rgb(17, 165, 214, 0.5);
 }
 
+.input-highlight > .input-highlight {
+  background-color: transparent;
+  border: 0px solid transparent;
+}
+
 .target-highlight {
   background-color: #dbbf4159;
   border-left: 1.5px solid rgb(143, 123, 37, 0.5);
   border-right: 1.5px solid rgb(143, 123, 37, 0.5);
+}
+
+.target-highlight > .target-highlight {
+  background-color: transparent;
+  border: 0px solid transparent;
+}
+
+.input-zero-highlight {
+  background-color: rgba(106, 216, 253, 0.404);
+  border-left: 2px dotted rgba(18, 147, 190, 0.801);
+}
+
+.target-zero-highlight {
+  background-color: #dbbf4159;
+  border-left: 2px dotted rgb(143, 123, 37, 0.5);
 }
 
 .input-group-highlight {

@@ -1,5 +1,8 @@
 import quickRegex from './modules/levels.js';
-import MultiRegExp2 from './modules/multiRegExp2.esm.js';
+import RegexContainer from './modules/RegexContainer.js';
+import Mark from './modules/mark.es6.js';
+import Queue from './modules/FunctionQueue.js';
+import RegexColorizer from './modules/RegexColorizer.js';
 
 var caseList = document.querySelector('.case-list');
 var caseTemplate = document.querySelector('#case-template');
@@ -16,6 +19,8 @@ var progressBarText = progressBarStrip.querySelector('#progress-bar-text');
 var fab = document.querySelector('.fab-btn');
 var message = document.querySelector('.message');
 var cases = [];
+const q = new Queue(true);
+
 
 if (String.prototype.splice === undefined) {
   /**
@@ -83,6 +88,8 @@ loadLevel();
 
 // transition
 document.querySelector('body').setAttribute('faded', 'false');
+
+setTimeout(() => q.next(), 300);
 
 function saveState() {
   localStorage.savedState = JSON.stringify(quickRegex.savedState);
@@ -198,9 +205,10 @@ function updateHighlighting() {
 }
 
 async function updateCases() {
-  var targetRegex = quickRegex.levels[quickRegex.savedState.currentLevel].targetRegex;
-  var flags = (targetRegex === null) ? 'g' : targetRegex.flags;
-  if (verifyRegex(editor.value, flags)) {
+  var currentLevel = quickRegex.levels[quickRegex.savedState.currentLevel];
+  var targetRegex = currentLevel.targetRegex;
+  var flags = currentLevel.hasOwnProperty('explicitFlags') ? currentLevel.explicitFlags : ((targetRegex === null) ? 'g' : targetRegex.flags);
+  if (editor.value && verifyRegex(editor.value, flags)) {
     var matchTooMany = false;
     var matchTooFew = false;
     var wrongCaptureGroup = false;
@@ -208,116 +216,87 @@ async function updateCases() {
     var numPassed = 0;
     var total = 0;
     await Promise.all(cases.map(async element => {
-      await unmarkAsync(element.markjs, {});
-      await markRegExpAsync(element.markjs, inputRegex, { "className": "input-highlight", "acrossElements": "true" });
+      element.text.innerHTML = escapeHtml(element.text.innerText);
+
+      inputRegex.lastIndex = 0;
       if (targetRegex !== null)
-        await markRegExpAsync(element.markjs, targetRegex, { "className": "target-highlight", "acrossElements": "true" });
+        targetRegex.lastIndex = 0;
 
       const caseText = element.text.innerText;
-      const matchesA = (targetRegex === null) ? [] : Array.from(caseText.matchAll(targetRegex));
-      const matchesB = Array.from(caseText.matchAll(inputRegex));
+      const matchesA = (targetRegex === null) ? [] : RegexContainer.exec(targetRegex, caseText).results;
+      const matchesB = RegexContainer.exec(inputRegex, caseText).results;
 
-      let matches2A = [];
-      if (targetRegex !== null) {
-        let regex2A = new MultiRegExp2(targetRegex);
-        matches2A = (() => {
-          var arr = [];
-          var pos = regex2A.regexp.lastIndex;
-          var res = regex2A.execForAllGroups(caseText, true);
-          while (res) {
-            if (regex2A.regexp.lastIndex === pos) {
-              regex2A.regexp.lastIndex++;
-            }
-            arr.push(...res.slice(1));
-            pos = regex2A.regexp.lastIndex;
-            res = regex2A.execForAllGroups(caseText, true);
-          }
-          return arr;
-        })();
+      const fullMatchesA = matchesA.map(item => {
+        return item[0];
+      }).map(x => {
+        return {
+          start: x.startPos,
+          length: x.endPos - x.startPos
+        };
+      });
 
-        if (matches2A)
-          await markRangesAsync(element.markjs, matches2A.map(x => {
-            if (x.start !== 0) {
-              return {
-                start: x.start,
-                length: x.end - x.start
-              };
-            }
-            else {   // dirty patch
-              if (caseText.substring(x.start, x.end) === x.match) {
-                return {
-                  start: x.start,
-                  length: x.end - x.start
-                };
-              }
-              else {
-                return {
-                  start: caseText.indexOf(x.match),
-                  length: x.match.length
-                };
-              }
-            }
-          }), { "className": "target-group-highlight" });
-      }
+      if (fullMatchesA.length)
+        await markRangesAsync(element.markjs, fullMatchesA, { "className": "target-highlight" });
 
-      let regex2B = new MultiRegExp2(inputRegex);
-      let matches2B = (() => {
-        var arr = [];
-        var pos = regex2B.regexp.lastIndex;
-        var res = regex2B.execForAllGroups(caseText, true);
-        while (res) {
-          if (regex2B.regexp.lastIndex === pos) {
-            regex2B.regexp.lastIndex++;
-          }
-          arr.push(...res.slice(1));
-          pos = regex2B.regexp.lastIndex;
-          res = regex2B.execForAllGroups(caseText, true);
-        }
-        return arr;
-      })();
 
-      if (matches2B)
-        await markRangesAsync(element.markjs, matches2B.map(x => {
-          if (x.start !== 0) {
-            return {
-              start: x.start,
-              length: x.end - x.start
-            };
-          }
-          else {   // dirty patch
-            if (caseText.substring(x.start, x.end) === x.match) {
-              return {
-                start: x.start,
-                length: x.end - x.start
-              };
-            }
-            else {
-              return {
-                start: caseText.indexOf(x.match),
-                length: x.match.length
-              };
-            }
-          }
-        }), { "className": "input-group-highlight" });
+      const fullMatchesB = matchesB.map(item => {
+        return item[0];
+      }).map(x => {
+        return {
+          start: x.startPos,
+          length: x.endPos - x.startPos
+        };
+      });
+
+      if (fullMatchesB.length)
+        await markRangesAsync(element.markjs, fullMatchesB, { "className": "input-highlight" });
+
+
+      const groupMarkersA = matchesA.map(item => {
+        return item.slice(1);
+      }).flat().map(x => {
+        return {
+          start: x.startPos,
+          length: x.endPos - x.startPos
+        };
+      });
+
+      if (groupMarkersA.length)
+        await markRangesAsync(element.markjs, groupMarkersA, { "className": "target-group-highlight" });
+
+      const groupMarkersB = matchesB.map(item => {
+        return item.slice(1);
+      }).flat().map(x => {
+        return {
+          start: x.startPos,
+          length: x.endPos - x.startPos
+        };
+      });
+
+      if (groupMarkersB.length)
+        await markRangesAsync(element.markjs, groupMarkersB, { "className": "input-group-highlight" });
+
+      markZeroLengths(element.text, matchesA.map(x => x[0]).filter(x => x.startPos === x.endPos).map(x => x.startPos), { "className": "target-zero-highlight" });
+      markZeroLengths(element.text, matchesB.map(x => x[0]).filter(x => x.startPos === x.endPos).map(x => x.startPos), { "className": "input-zero-highlight" });
 
 
       var matchesAPass = matchesA.reduce((accumulator, currentValue) => {
         return accumulator +
-          ((matchesB.find(x => x.index === currentValue.index && x[0] === currentValue[0])) ? 1 : 0);
+          ((matchesB.find(x => x[0].startPos === currentValue[0].startPos && x[0].endPos === currentValue[0].endPos)) ? 1 : 0);
       }, 0);
       var matchesBPass = matchesB.reduce((accumulator, currentValue) => {
         return accumulator +
-          ((matchesA.find(x => x.index === currentValue.index && x[0] === currentValue[0])) ? 1 : 0);
+          ((matchesA.find(x => x[0].startPos === currentValue[0].startPos && x[0].endPos === currentValue[0].endPos)) ? 1 : 0);
       }, 0);
-      var matches2APass = matches2A.reduce((accumulator, currentValue) => {
+      var matches2APass = groupMarkersA.reduce((accumulator, currentValue) => {
         return accumulator +
-          ((matches2B.find(x => x.start === currentValue.start && x.end === currentValue.end && x.match === currentValue.match)) ? 1 : 0);
+          ((groupMarkersB.find(x => x.start === currentValue.start && x.length === currentValue.length)) ? 1 : 0);
       }, 0);
 
       if (targetRegex === null) {
         element.caseElement.setAttribute('passed', 'true');
       }
-      else if (matchesAPass + matchesBPass + matches2APass === matchesA.length + matchesB.length + matches2A.length) {
+      else if (matchesAPass + matchesBPass + matches2APass === matchesA.length + matchesB.length + groupMarkersA.length) {
         element.caseElement.setAttribute('passed', 'true');
       }
       else {
@@ -328,12 +307,12 @@ async function updateCases() {
         else if (matchesBPass < matchesB.length) {
           matchTooMany = true;
         }
-        else if (matches2APass < matches2A.length) {
+        else if (matches2APass < groupMarkersA.length) {
           wrongCaptureGroup = true;
         }
       }
       numPassed += matchesAPass + matchesBPass + matches2APass;
-      total += matchesA.length + matchesB.length + matches2A.length;
+      total += matchesA.length + matchesB.length + groupMarkersA.length;
     }));
     if (targetRegex === null) {
       progressBarStrip.style.width = '100%';
@@ -374,37 +353,40 @@ async function updateCases() {
   else {
     if (targetRegex !== null) {
       await Promise.all(cases.map(async element => {
-        await unmarkAsync(element.markjs, {});
-        await markRegExpAsync(element.markjs, targetRegex, { "className": "target-highlight", "acrossElements": "true" });
+        element.text.innerHTML = escapeHtml(element.text.innerText);
+
+        targetRegex.lastIndex = 0;
 
         const caseText = element.text.innerText;
 
-        let regex2A = new MultiRegExp2(targetRegex);
-        let matches2A = regex2A.execForAllGroups(caseText);
+        const matchesA = RegexContainer.exec(targetRegex, caseText).results;
 
-        if (matches2A)
-          await markRangesAsync(element.markjs, matches2A.map(x => {
-            if (x.start !== 0) {
-              return {
-                start: x.start,
-                length: x.end - x.start
-              };
-            }
-            else {   // dirty patch
-              if (caseText.substring(x.start, x.end) === x.match) {
-                return {
-                  start: x.start,
-                  length: x.end - x.start
-                };
-              }
-              else {
-                return {
-                  start: caseText.indexOf(x.match),
-                  length: x.match.length
-                };
-              }
-            }
-          }), { "className": "target-group-highlight" });
+        const fullMatchesA = matchesA.map(item => {
+          return item[0];
+        }).map(x => {
+          return {
+            start: x.startPos,
+            length: x.endPos - x.startPos
+          };
+        });
+
+        if (fullMatchesA.length)
+          await markRangesAsync(element.markjs, fullMatchesA, { "className": "target-highlight" });
+
+
+        const groupMarkersA = matchesA.map((item) => {
+          return item.slice(1);
+        }).flat().map(x => {
+          return {
+            start: x.startPos,
+            length: x.endPos - x.startPos
+          }
+        });
+
+        if (groupMarkersA)
+          await markRangesAsync(element.markjs, groupMarkersA, { "className": "target-group-highlight" });
+
+        markZeroLengths(element.text, matchesA.map(x => x[0]).filter(x => x.startPos === x.endPos).map(x => x.startPos), { "className": "target-zero-highlight" });
 
         element.caseElement.setAttribute('passed', 'false');
       }));
@@ -413,29 +395,43 @@ async function updateCases() {
       fab.setAttribute('enabled', 'false');
     }
     else {
+      cases.forEach(element => {
+        element.text.innerHTML = escapeHtml(element.text.innerText);
+        element.caseElement.setAttribute('passed', 'true');
+      });
       progressBarStrip.style.width = '100%';
       progressBarText.innerText = '100%';
       fab.setAttribute('enabled', 'true');
     }
     if (editor.value) {
-      updateMessage('Your regex is invalid!');
+      var err = highlighting.querySelector('[title]:not([title=""])');
+      if (err)
+        updateMessage('Your regex is invalid! - ' + err.getAttribute('title'));
+      else
+        updateMessage('Your regex is invalid!');
     }
     else {
-      updateMessage('Type something to get started');
+      if (targetRegex === null) {
+        updateMessage('Type something to get started or click next to move on');
+      }
+      else {
+        updateMessage('Type something to get started');
+      }
     }
   }
 }
 
 function updateMessage(msg) {
-  if (message.innerText !== msg)
-    setTimeout(async () => {
+  q.add(async () => {
+    if (message.innerText !== msg) {
       message.classList.remove('fade-in');
       message.classList.add('fade-out');
       await sleep(250);
       message.innerText = msg;
       message.classList.remove('fade-out');
       message.classList.add('fade-in');
-    }, 0);
+    }
+  });
 }
 
 function verifyRegex(regex, flags) {
@@ -448,113 +444,56 @@ function verifyRegex(regex, flags) {
   return isValid;
 }
 
+function escapeHtml(unsafe) {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function createRange(node, chars, range) {
-  if (!range) {
-    range = document.createRange()
-    range.selectNode(node);
-    range.setStart(node, 0);
-  }
-
-  if (chars.count === 0) {
-    range.setEnd(node, chars.count);
-  } else if (node && chars.count > 0) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      if (node.textContent.length < chars.count) {
-        chars.count -= node.textContent.length;
-      } else {
-        range.setEnd(node, chars.count);
-        chars.count = 0;
+function markZeroLengths(element, positions, options) {
+  let code = element.innerHTML;
+  const addition = '<mark class="' + options.className + '"></mark>';
+  positions.forEach(pos => {
+    let i = 0;
+    let len = 0;
+    let skip = '';
+    while (i < code.length) {
+      if (skip) {
+        if (code[i] === skip) skip = '';
       }
-    } else {
-      for (var lp = 0; lp < node.childNodes.length; lp++) {
-        range = createRange(node.childNodes[lp], chars, range);
-
-        if (chars.count === 0) {
-          break;
+      else {
+        if (len === pos) {
+          code = code.splice(i, addition);
+          return;
+        }
+        if (code[i] === '<') {
+          skip = '>';
+        }
+        else if (code[i] === '&') {
+          skip = ';';
+          len++;
+        }
+        else {
+          len++;
         }
       }
+      i++;
     }
-  }
-
-  return range;
-};
-
-function setCurrentCursorPosition(elementId, chars) {
-  if (chars >= 0) {
-    var selection = window.getSelection();
-
-    range = createRange(document.getElementById(elementId).parentNode, { count: chars });
-
-    if (range) {
-      range.collapse(false);
-      selection.removeAllRanges();
-      selection.addRange(range);
+    if (len === pos) {
+      code = code + addition;
     }
-  }
-};
-
-function isChildOf(node, parentId) {
-  while (node !== null) {
-    if (node.id === parentId) {
-      return true;
+    else {
+      throw pos + ' is out of bounds';
     }
-    node = node.parentNode;
-  }
-
-  return false;
-};
-
-function getCurrentCursorPosition(parentId) {
-  var selection = window.getSelection(),
-    charCount = -1,
-    node;
-
-  if (selection.focusNode) {
-    if (isChildOf(selection.focusNode, parentId)) {
-      node = selection.focusNode;
-      charCount = selection.focusOffset;
-
-      while (node) {
-        if (node.id === parentId) {
-          break;
-        }
-
-        if (node.previousSibling) {
-          node = node.previousSibling;
-          charCount += node.textContent.length;
-        } else {
-          node = node.parentNode;
-          if (node === null) {
-            break
-          }
-        }
-      }
-    }
-  }
-
-  return charCount;
-};
-
-function unmarkAsync(markInstance, options) {
-  return new Promise(function (resolve, reject) {
-    markInstance.unmark({
-      ...options,
-      done: resolve
-    });
   });
-}
-
-function markRegExpAsync(markInstance, regex, options) {
-  return new Promise(function (resolve, reject) {
-    markInstance.markRegExp(regex, {
-      ...options,
-      done: resolve
-    });
-  });
+  element.innerHTML = code;
 }
 
 function markRangesAsync(markInstance, ranges, options) {

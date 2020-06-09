@@ -5,6 +5,11 @@ var urlsToCache = [
   '/index.js',
   '/levels.js',
   '/favicon.png',
+  '/extern/FunctionQueue.js',
+  '/extern/mark.es6.js',
+  '/extern/RegexColorizer.js',
+  '/extern/RegexContainer.js',
+  '/manifest.json',
 ];
 
 self.addEventListener('install', function(event) {
@@ -50,7 +55,7 @@ self.addEventListener('fetch', function(event) {
 
 self.addEventListener('activate', function(event) {
 
-  var cacheWhitelist = ['quick-regex-cache-v1'];
+  var cacheWhitelist = [CACHE_NAME];
 
   event.waitUntil(
     caches.keys().then(function(cacheNames) {

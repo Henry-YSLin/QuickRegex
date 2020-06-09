@@ -1,5 +1,6 @@
-/*! Regex Colorizer v0.3.1
+/*! Regex Colorizer v0.3.1 (Modified by Henry Lin)
  * (c) 2010-2012 Steven Levithan <http://stevenlevithan.com/regex/colorizer/>
+ * (c) 2020 Henry Lin
  * MIT license
  */
 
@@ -7,6 +8,9 @@
  * Highlighter'. The name changed to Regex Colorizer in v0.2. Currently supports JavaScript (with
  * web reality) regex syntax only.
  */
+
+/* Modified to support lookbehinds, named capturing groups and named backreferences
+*/
 
 var RegexColorizer = (function () {
     "use strict";

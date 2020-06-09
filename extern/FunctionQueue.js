@@ -6,22 +6,25 @@ class Queue {
   }
 
   add(cb) {
+    if (this.queue.length > 2) {
+      this.queue = this.queue.splice(0, this.queue.length - 1);
+    }
     this.queue.push((value) => {
-        const finished = new Promise((resolve, reject) => {
+      const finished = new Promise((resolve, reject) => {
         const callbackResponse = cb(value);
 
         if (callbackResponse !== false) {
-            resolve(callbackResponse);
+          resolve(callbackResponse);
         } else {
-            reject(callbackResponse);
+          reject(callbackResponse);
         }
       });
 
-      finished.then(this.dequeue.bind(this), (() => {}));
+      finished.then(this.dequeue.bind(this), (() => { }));
     });
 
     if (this.autorun && !this.running) {
-        this.dequeue();
+      this.dequeue();
     }
 
     return this;
@@ -31,7 +34,7 @@ class Queue {
     this.running = this.queue.shift();
 
     if (this.running) {
-        this.running(value);
+      this.running(value);
     }
 
     return this.running;

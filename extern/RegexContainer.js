@@ -1,12 +1,15 @@
 /*
 Copyright (c) 2019 Steven A Muchow
+Copyright (c) 2020 Henry Lin
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-Enhanced RegEx JS processing
+Enhanced RegEx JS processing (Modified by Henry Lin)
 Adds position information for capture groups (nested ones too) AND named group items.
+Supports nested lookarounds, capture groups in lookarounds and capture groups in non-capture groups
 */
+
 class RegexContainer {
 
     static _findCaptureGroupsInRegexTemplate(re, input) {
@@ -42,11 +45,11 @@ class RegexContainer {
         return matches;
     }
 
-    static execFull(re, input, foundCaptureItems) {
+    static execFull(re, input, foundGroupConstructs) {
         let result; let foundIdx; let groupName; let lastPos = 0; const matches = [];
         re.lastIndex = 0;
         while ((result = re.exec(input)) !== null) {
-            let array = createCustomResultArray(result);
+            let array = createCustomResultArray(result, foundGroupConstructs);
             array.forEach((match, idx) => {
                 if (!idx) {
                     match.startPos = match.endPos = result.index;
@@ -55,9 +58,9 @@ class RegexContainer {
                     return;
                 }
                 let parentStr = array[match.parent].data;
-                let gpIdx = getGroupMappingIndex(idx, foundCaptureItems);
+                let gpIdx = getGroupMappingIndex(idx, foundGroupConstructs);
                 let lookAroundParent;
-                if (lookAroundParent = getLookaroundParent(gpIdx, foundCaptureItems)) {
+                if (lookAroundParent = getLookaroundParent(gpIdx, foundGroupConstructs)) {
                     if (lookAroundParent.startsWith('(?<')) {
                         foundIdx = input.substring(0, array[match.parent].endPos).lastIndexOf(match.data) - array[match.parent].startPos;
                     }
@@ -70,7 +73,7 @@ class RegexContainer {
                 }
                 match.startPos = match.endPos = foundIdx + array[match.parent].startPos;
                 match.endPos += match.data.length;
-                if ((groupName = foundCaptureItems[gpIdx].name)) { match.groupName = groupName; }
+                if ((groupName = foundGroupConstructs[gpIdx].name)) { match.groupName = groupName; }
             });
             matches.push(array);
             if (result[0].length === 0) { re.lastIndex++; }
@@ -79,46 +82,65 @@ class RegexContainer {
         }
         return matches;
 
-        function getGroupMappingIndex(idx, foundCaptureItems) {
+        function getGroupMappingIndex(idx, foundGroupConstructs) {
             let mapping = [];
-            foundCaptureItems.forEach((item, idx) => {
-                if (idx === 0 || !/^\(\?(?!<\w)/.test(item.source)) {
-                    mapping.push(idx);
+            foundGroupConstructs.forEach((item, x) => {
+                if (x === 0 || !/^\(\?(?!<\w)/.test(item.source)) {
+                    mapping.push(x);
                 }
             });
             return mapping[idx];
         }
 
-        function getLookaroundParent(idx, foundCaptureItems) {
-            while (foundCaptureItems[idx].parent) {
-                idx = foundCaptureItems[idx].parent;
-                if (/^\(\?[=!<]/.test(foundCaptureItems[idx].source)) {
-                    return foundCaptureItems[idx].source;
+        function getMatchMappingIndex(idx, foundGroupConstructs) {
+            let mapping = [];
+            foundGroupConstructs.forEach((item, x) => {
+                if (x === 0 || !/^\(\?(?!<\w)/.test(item.source)) {
+                    mapping.push(x);
                 }
-                else if (/^\((?!:)/.test(foundCaptureItems[idx].source)) {
+            });
+            return mapping.indexOf(idx);
+        }
+
+        function getCapturingParent(idx, foundGroupConstructs) {
+            while (foundGroupConstructs[idx].parent) {
+                idx = foundGroupConstructs[idx].parent;
+                if (/^\((?!\?)|\(\?<\w/.test(foundGroupConstructs[idx].source)) {
+                    return idx;
+                }
+            }
+            return 0;
+        }
+
+        function getLookaroundParent(idx, foundGroupConstructs) {
+            while (foundGroupConstructs[idx].parent) {
+                idx = foundGroupConstructs[idx].parent;
+                if (/^\(\?[=!<]/.test(foundGroupConstructs[idx].source)) {
+                    return foundGroupConstructs[idx].source;
+                }
+                else if (/^\((?!\?:)/.test(foundGroupConstructs[idx].source)) {
                     return null;
                 }
             }
             return null;
         }
 
-        function createCustomResultArray(result) {
-            let captureVar = 0;
-            return Array.from(result, (data) => {
-                return { data: data || '', parent: foundCaptureItems[captureVar++].parent, };
+        function createCustomResultArray(result, foundGroupConstructs) {
+            return Array.from(result, (data, idx) => {
+                return { data: data || '', parent: getMatchMappingIndex(getCapturingParent(getGroupMappingIndex(idx, foundGroupConstructs), foundGroupConstructs), foundGroupConstructs), };
             });
         }
     }
 
     static mapCaptureAndNameGroups(inputRegexSourceString) {
-        let REGEX_CAPTURE_GROUPS_ANALYZER = /(?:(?<!\\)|^)\((?:\?(?:<(?<name>\w+)>|<=|<!|!|=))?|(?:(?<!\\)\)(?:(?:[*+?]\??)?|{\d+,?(?:\d+)?}\??))/gm;
-        return RegexContainer._findCaptureGroupsInRegexTemplate(REGEX_CAPTURE_GROUPS_ANALYZER, inputRegexSourceString);
+        let REGEX_GROUP_CONSTRUCT_ANALYZER = /(?:(?<!\\)|^)\((?:\?(?:<(?<name>\w+)>|<=|<!|!|=))?|(?:(?<!\\)\)(?:(?:[*+?]\??)?|{\d+,?(?:\d+)?}\??))/gm;
+        return RegexContainer._findCaptureGroupsInRegexTemplate(REGEX_GROUP_CONSTRUCT_ANALYZER, inputRegexSourceString);
     }
 
     static exec(re, input) {
-        let foundCaptureItems = RegexContainer.mapCaptureAndNameGroups(re.source);
-        let res = RegexContainer.execFull(re, input, foundCaptureItems);
-        return { captureItems: foundCaptureItems, results: res };
+        let foundGroupConstructs = RegexContainer.mapCaptureAndNameGroups(re.source);
+        let res = RegexContainer.execFull(re, input, foundGroupConstructs);
+        return { captureItems: foundGroupConstructs, results: res };
     }
 
 }

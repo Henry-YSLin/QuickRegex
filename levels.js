@@ -1,4 +1,4 @@
-export let quickRegex = {
+let quickRegex = {
   savedState: {
     currentLevel: 0,
     levelStates: []
@@ -359,7 +359,7 @@ export let quickRegex = {
     },
     {
       title: 'Flags',
-      description: 'Besides editing the regex, you can also specify different toggles, or "flags", to change how the regex engine behaves. Common flags include:<br><code>g</code> - global<br><code>m</code> - multiline<br><code>i</code> - insensitive<br><code>s</code> - singleline<br><br>There are different ways to specify these flags, depending on the programming language you use. For instance, in JavaScript, you may append these flags after the regex, which is wrapped in <code>/</code>: <code>/^\w+$/gm</code>. In C#, you may specify the flags verbosely: <code>RegexOptions.IgnoreCase | RegexOptions.Multiline</code>, or append them in front of the regex: <code>(?im)^\\w+$</code><br><br>The commonly-used flags will be introduced in the following lessons.',
+      description: 'Besides editing the regex, you can also specify different toggles, or "flags", to change how the regex engine behaves. Common flags include:<br><code>g</code> - global<br><code>m</code> - multiline<br><code>i</code> - insensitive<br><code>s</code> - singleline<br><br>There are different ways to specify these flags, depending on the programming language you use. For instance, in JavaScript, you may append these flags after the regex, which is wrapped in <code>/</code>. e.g. <code>/</code><code class="regex">^\\w+$</code><code>/gm</code>. In C#, you may specify the flags verbosely: <code>RegexOptions.IgnoreCase | RegexOptions.Multiline</code>, or append them in front of the regex: <code>(?im)</code><code class="regex">^\\w+$</code><br><br>The commonly-used flags will be introduced in the following lessons.',
       targetRegex: null,
       cases: []
     },
@@ -413,17 +413,93 @@ export let quickRegex = {
     },
     {
       title: 'Additional Flags',
-      description: 'There are also other flags provided by individual regex engines. e.g.:<br><br>The Javascript engine provides the sticky flag <code>y</code> which only proceeds to the next match if it immediately follows the previous match.<br>The PCRE engine provides a <code>U</code> flag which makes all quantifiers lazy by default.<br>The python re engine provides an ascii flag <code>a</code> which matches ASCII characters only.<br><br>There are a lot more flags in each engine that are not covered here. Check the documentation for details.',
+      description: 'There are also other flags provided by individual regex engines. e.g.:<br><br>The Javascript engine provides the sticky flag <code>y</code> which only proceeds to the next match if it immediately follows the previous match.<br>The PCRE engine provides a <code>U</code> flag which makes all quantifiers lazy by default.<br>The python re engine provides an ascii flag <code>a</code> which matches ASCII characters only.<br><br>There are a lot more flags in each engine that are not covered here. Check their documentations for details.',
       targetRegex: null,
       cases: []
     },
     {
       title: 'Additional Features',
-      description: 'Recursion: Some regex engines, such as PCRE, have a recursion token that takes the expression from another capturing group and reevaluate it at the token\'s position. This is like using a backreferencing token, but actually reevaluating the expression instead of simply matching the resulting capture.<br>For example, in PCRE, the token <code>(?R)</code> reevaluate the entire regex at the token\'s position. This enables some advanced matching, such as matching strings with balanced opening and closing brackets and finding the corresponding end tag given the start tag in HTML.<br>In PCRE, with the regex <code>&lt;(?&lt;tag&gt;\\w+)&gt;((?R)|\\w+)&lt;\\/(\\k&lt;tag&gt;)&gt;</code>, the starting and closing "div" in "&lt;div&gt;&lt;a&gt;abc&lt;/a&gt;&lt;/div&gt;" can be captured.<br><br>Balancing groups: The .NET Regex engine has a unique function called balancing groups which can achieve similar goals as the recursion token in PCRE. The documentation of balancing groups can be found <a href="https://docs.microsoft.com/en-us/dotnet/standard/base-types/grouping-constructs-in-regular-expressions?redirectedfrom=MSDN#balancing_group_definition" target="_blank">here</a>.<br><br>Conditional statements: Some engines implements conditional statements <code>(?(condition)yes|no)</code>, which means if "condition" matches, use "yes" to match the rest of the string, otherwise use "no".<br><br>Substitution: Many regex engines also provides a "replace" function in addition to "match". The replace function uses a regex to find parts of the string and then replace them with a specified expression. That expression can use captured data from the regex to make smart replacements. e.g. <code class="regex">"(\\w+)"</code> searches for words wrapped with <code>"</code>, then <code>\'$1\'</code> replaces the double quotes with single quotes while keeping the word intact.<br><br>Atomic groups: As mentioned in Backreferences II, quantifiers can cooperate with other tokens to yield a match by giving back characters or expanding their matches as needed. This behavior can be disabled by putting the quantifiers inside an atomic group <code>(?&gt; )</code>. The atomic group allows quantifiers inside to take the highest priority, ignoring the other tokens outside the atomic group. e.g. <code>(?&gt;(\\w+))\\1</code> does not match "aaaaaa" since <code>(\\w+)</code> is inside an atomic group, causing <code>+</code> to match the entire string, ignoring the fact that it causes <code>\\1</code> to fail.<br>In fact, lookarounds are also atomic. If you wrap a capturing group inside a lookaround, the capturing group will ignore tokens outside the lookaround. e.g. <code>(\\d+)\\w+\\1</code> matches "123x12" but <code>(?=(\\d+))\\w+\\1</code> does not, since <code>\\d+</code> now matches "123", ignoring the fact that <code>\\1</code> can match "12" only, not "123".',
+      description: 'Recursion: Some regex engines, such as PCRE, have a recursion token that takes the expression from another capturing group and reevaluate it at the token\'s position. This is like using a backreferencing token, but actually reevaluating the expression instead of simply matching the resulting capture.<br>For example, in PCRE, the token <code>(?R)</code> reevaluate the entire regex at the token\'s position. This enables some advanced matching, such as matching strings with balanced opening and closing brackets and finding the corresponding end tag given the start tag in HTML.<br>In PCRE, with the regex <code>&lt;(?&lt;tag&gt;\\w+)&gt;((?R)|\\w+)&lt;\\/(\\k&lt;tag&gt;)&gt;</code>, the starting and closing "div" in "&lt;div&gt;&lt;a&gt;abc&lt;/a&gt;&lt;/div&gt;" can be captured.<br><br>Balancing groups: The .NET Regex engine has a unique function called balancing groups which can achieve similar goals as the recursion token in PCRE. The documentation of balancing groups can be found <a href="https://docs.microsoft.com/en-us/dotnet/standard/base-types/grouping-constructs-in-regular-expressions?redirectedfrom=MSDN#balancing_group_definition" target="_blank">here</a>.<br><br>Conditional statements: Some engines implements conditional statements <code>(?(condition)yes|no)</code>, which means if "condition" matches, use "yes" to match the rest of the string, otherwise use "no".<br><br>Substitution: Many regex engines also provides a "replace" function in addition to "match". The replace function uses a regex to find parts of the string and then replace them with a specified expression. That expression can use captured data from the regex to make smart replacements. e.g. <code class="regex">"(\\w+)"</code> searches for words wrapped with <code>"</code>, then <code>\'$1\'</code> replaces the double quotes with single quotes while keeping the word intact.<br><br>Atomic groups: As mentioned in Backreferences II, quantifiers can cooperate with other tokens to yield a match by giving back characters or expanding their matches as needed. This behavior can be disabled by putting the quantifiers inside an atomic group <code>(?&gt; )</code>. The atomic group allows quantifiers inside to take the highest priority, ignoring the other tokens outside the atomic group. e.g. <code>(?&gt;(\\w+))\\1</code> does not match "aaaaaa" since <code>(\\w+)</code> is inside an atomic group, causing <code>+</code> to match the entire string, ignoring the fact that it causes <code>\\1</code> to fail.<br>In fact, lookarounds are also atomic. If you wrap a capturing group inside a lookaround, the capturing group will ignore tokens outside the lookaround. e.g. <code class="regex">(\\d+)\\w+\\1</code> matches "123x12" but <code class="regex">(?=(\\d+))\\w+\\1</code> does not, since <code class="regex">\\d+</code> now matches "123", ignoring the fact that <code class="regex">\\1</code> can match "12" only, not "123".',
       targetRegex: null,
       cases: []
+    },
+    {
+      title: 'Useful Sites',
+      description: 'Regex is notorious for its low readability, but there are great tools online that can help you build, test and debug regex painlessly.<br><br><a href="https://regex101.com/" target="_blank"><h3>Regex101</h3></a>Features:<br>PCRE, JavaScript, Python and Golang flavors supported<br>Regex explanation<br>Quick regerence<br>Regex quiz<br>Cloud save<br><br><a href="https://regexr.com/" target="_blank"><h3>RegExr</h3></a>Features:<br>PCRE and JavaScript flavors supported<br>Regex explanation<br>Quick reference<br>Community regex database<br>Cloud save<br><br><a href="https://www.debuggex.com/" target="_blank"><h3>Debuggex</h3></a>Features:<br>PCRE, JavaScript and python flavors supported<br>Graphical regex representation<br>Quick reference<br>Regex library',
+      targetRegex: null,
+      cases: []
+    },
+    {
+      title: 'Challenges',
+      description: 'You have learned most, if not all, of the common regex tokens. Now it\'s the time to put the knowledge to use in the following series of challenges. Some of these challenges may require you to write relatively complex regex, but none requires knowledge outside of what is taught here. If you need a quick refresher of the meaning of some tokens, click on the related lesson on the navigation bar on the left. Good luck and don\'t give up!',
+      targetRegex: null,
+      cases: []
+    },
+    {
+      title: 'Challenge  - URL',
+      description: 'URLs may look complex to the human eye, but it is actually very easy to extrat information from URLs using regex due to its clear format.<br><br>Write a regex that matches valid URLs and capture the protocol, domain name, port, path and queries.',
+      targetRegex: /^(https?|ftp):\/\/([\w._-]+?)(?::(\d+))?\/(.+?)?(?:\?(.*))?$/g,
+      cases: [
+        'https://www.google.com/',
+        'ftp://www.amazingftp.net/path/to/your/file.txt',
+        'http://unsafe-website99.io:8080/index.html?password=pas$word',
+        'abc://no_such_protocol.com/',
+        'http://invalid$char.com/',
+        'http://wrong-port.com:abc123/',
+        'not a url at all',
+        'nope http://abc.com/',
+      ]
+    },
+    {
+      title: 'Challenge  - Number Formats',
+      description: 'Numbers can be a lot more complex than simply a bunch of digits. In this challenge, you need a regex that can match numbers in decimal (e.g. 123,456.78), scientific notation (e.g. 1.2e-9) and hexadecimal forms (0x####).',
+      targetRegex: /^(?:-?(?:\d+,)?\d+(?:\.\d+)?(?:e-?\d+)?|0x[0-9a-f]+)$/g,
+      cases: [
+        '123,456.78',
+        '123.456',
+        '0.123',
+        '12e3',
+        '-12e-4',
+        '-32.5e-3',
+        '0x5aed3c',
+        '0x33492d',
+        '0x3kd3o5',
+        '12E34',
+        '12A34',
+        '123.456,123',
+      ]
+    },
+    {
+      title: 'Challenge  - Date Formats',
+      description: 'Many programming languages provide parsers to convert a string into a date, but if there is no such thing provided or if the date is buried in a ton of unrelated text, regex can help you quickly locate and match the date.<br><br>In the exercise below, match all dates in the format dd-mm-yyyy or dd/mm/yyyy and capture the day, month and year. Note that the two date separators must match and the day and month must be within range, which is the hard part since regex can\'t verify a numeric range directly.',
+      targetRegex: /^(?:([0-2]?[0-9]|3[01])\/(1[0-2]|[0-9])\/(\d+)|([0-2]?[0-9]|3[01])-(1[0-2]|[0-9])-(\d+))$/g,
+      cases: [
+        '31/12/2099',
+        '12/31/2099',
+        '1/8/1934',
+        '31-12-2013',
+        '6/7/2020',
+        '2-3/1946',
+        '33-1-2000',
+        '2/1-2000',
+      ]
+    },
+    {
+      title: 'Challenge  - Email Addresses',
+      description: 'Email addresses may seem simple, but their specification is actually pretty complex. One feature in email addresses that you may not know of is plus addressing. You may use <code>username+filter@email.com</code> instead of <code>username@email.com</code> to refer to the same address, with the part after <code>+</code> functioning as a filter or tag.',
+      targetRegex: / /g,
+      cases: [
+        '31/12/2099',
+        '12/31/2099',
+        '1/8/1934',
+        '31-12-2013',
+        '6/7/2020',
+        '2-3/1946',
+        '33-1-2000',
+        '2/1-2000',
+      ]
     },
   ]
 };
 
-export { quickRegex as default };
+export default quickRegex;

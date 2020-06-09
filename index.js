@@ -1,8 +1,8 @@
-import quickRegex from './modules/levels.js';
-import RegexContainer from './modules/RegexContainer.js';
-import Mark from './modules/mark.es6.js';
-import Queue from './modules/FunctionQueue.js';
-import RegexColorizer from './modules/RegexColorizer.js';
+import quickRegex from './levels.js';
+import RegexContainer from './extern/RegexContainer.js';
+import Mark from './extern/mark.es6.js';
+import Queue from './extern/FunctionQueue.js';
+import RegexColorizer from './extern/RegexColorizer.js';
 
 var caseList = document.querySelector('.case-list');
 var caseTemplate = document.querySelector('#case-template');
@@ -53,8 +53,25 @@ else {
 // auto-save
 setInterval(function () { saveState() }, 5000);
 
+editor.addEventListener("keydown", function (e) {
+  if (e.keyCode == 13) {
+    e.preventDefault();
+  }
+})
+
+function setEditorHeight() {
+  editor.style.height = 'auto';
+  editor.style.height = (editor.scrollHeight) + 'px';
+  highlighting.style.height = editor.offsetHeight + 'px';
+}
+
+editor.style.overflowY = 'hidden';
+setEditorHeight();
+
 // set up editor
 editor.addEventListener("input", async function () {
+  editor.value = editor.value.replace(/\r\n|\r|\n/,'');
+  setEditorHeight();
   updateHighlighting();
   await updateCases();
   quickRegex.savedState.levelStates[quickRegex.savedState.currentLevel].regex = editor.value;
@@ -196,6 +213,8 @@ function loadLevel() {
 
   updateCases();
 
+  setEditorHeight();
+
   saveState();
 }
 
@@ -208,7 +227,8 @@ async function updateCases() {
   var currentLevel = quickRegex.levels[quickRegex.savedState.currentLevel];
   var targetRegex = currentLevel.targetRegex;
   var flags = currentLevel.hasOwnProperty('explicitFlags') ? currentLevel.explicitFlags : ((targetRegex === null) ? 'g' : targetRegex.flags);
-  if (editor.value && verifyRegex(editor.value, flags)) {
+  var errMsg;
+  if (editor.value && !(errMsg = verifyRegex(editor.value, flags))) {
     var matchTooMany = false;
     var matchTooFew = false;
     var wrongCaptureGroup = false;
@@ -223,11 +243,19 @@ async function updateCases() {
         targetRegex.lastIndex = 0;
 
       const caseText = element.text.innerText;
-      const matchesA = (targetRegex === null) ? [] : RegexContainer.exec(targetRegex, caseText).results;
-      const matchesB = RegexContainer.exec(inputRegex, caseText).results;
+      let dataA;
+      let matchesA = [];
+      if (targetRegex !== null) {
+        dataA = RegexContainer.exec(targetRegex, caseText);
+        matchesA = dataA.results;
+      }
+      const dataB = RegexContainer.exec(inputRegex, caseText);
+      const matchesB = dataB.results;
 
       const fullMatchesA = matchesA.map(item => {
         return item[0];
+      }).filter(x => {
+        return x.startPos !== x.endPos;
       }).map(x => {
         return {
           start: x.startPos,
@@ -241,6 +269,8 @@ async function updateCases() {
 
       const fullMatchesB = matchesB.map(item => {
         return item[0];
+      }).filter(x => {
+        return x.startPos !== x.endPos;
       }).map(x => {
         return {
           start: x.startPos,
@@ -254,7 +284,9 @@ async function updateCases() {
 
       const groupMarkersA = matchesA.map(item => {
         return item.slice(1);
-      }).flat().map(x => {
+      }).flat().filter(x => {
+        return x.startPos !== x.endPos;
+      }).map(x => {
         return {
           start: x.startPos,
           length: x.endPos - x.startPos
@@ -266,7 +298,9 @@ async function updateCases() {
 
       const groupMarkersB = matchesB.map(item => {
         return item.slice(1);
-      }).flat().map(x => {
+      }).flat().filter(x => {
+        return x.startPos !== x.endPos;
+      }).map(x => {
         return {
           start: x.startPos,
           length: x.endPos - x.startPos
@@ -363,6 +397,8 @@ async function updateCases() {
 
         const fullMatchesA = matchesA.map(item => {
           return item[0];
+        }).filter(x => {
+          return x.startPos !== x.endPos;
         }).map(x => {
           return {
             start: x.startPos,
@@ -376,7 +412,9 @@ async function updateCases() {
 
         const groupMarkersA = matchesA.map((item) => {
           return item.slice(1);
-        }).flat().map(x => {
+        }).flat().filter(x => {
+          return x.startPos !== x.endPos;
+        }).map(x => {
           return {
             start: x.startPos,
             length: x.endPos - x.startPos
@@ -404,9 +442,8 @@ async function updateCases() {
       fab.setAttribute('enabled', 'true');
     }
     if (editor.value) {
-      var err = highlighting.querySelector('[title]:not([title=""])');
-      if (err)
-        updateMessage('Your regex is invalid! - ' + err.getAttribute('title'));
+      if (errMsg)
+        updateMessage('Your regex is invalid! - ' + errMsg.match(/: ([^:]*?)$/)[1]);
       else
         updateMessage('Your regex is invalid!');
     }
@@ -435,13 +472,13 @@ function updateMessage(msg) {
 }
 
 function verifyRegex(regex, flags) {
-  var isValid = true;
+  var err = null;
   try {
     new RegExp(regex, flags);
   } catch (e) {
-    isValid = false;
+    err = e.message;
   }
-  return isValid;
+  return err;
 }
 
 function escapeHtml(unsafe) {

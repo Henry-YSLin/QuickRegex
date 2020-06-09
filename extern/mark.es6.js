@@ -5,6 +5,8 @@
 * Released under the MIT license https://git.io/vwTVl
 *****************************************************/
 
+/* Slightly modified */
+
 'use strict';
 
 class DOMIterator {

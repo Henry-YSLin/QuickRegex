@@ -69,7 +69,29 @@ class RegexContainer {
                     }
                 }
                 else {
-                    foundIdx = (match.parent < idx - 1) ? parentStr.lastIndexOf(match.data) : parentStr.indexOf(match.data);
+                    foundIdx = parentStr.lastIndexOf(match.data);
+
+                    // if (idx === 0) {
+                    //     foundIdx = parentStr.lastIndexOf(match.data);
+                    // }
+                    // else {
+                    //     var parentGroupIdx = getCapturingParent(gpIdx, foundGroupConstructs);
+                    //     var parentGroupContent;
+                    //     if (parentGroupIdx === 0){
+                    //         parentGroupContent = foundGroupConstructs[parentGroupIdx].source;
+                    //     }
+                    //     else{
+                    //         parentGroupContent = getGroupContent(foundGroupConstructs[parentGroupIdx].source);
+                    //     }
+                    //     if (parentGroupContent.startsWith(foundGroupConstructs[gpIdx].source)) {
+                    //         foundIdx = parentStr.indexOf(match.data);
+                    //     }
+                    //     else {
+                    //         foundIdx = parentStr.lastIndexOf(match.data);
+                    //     }
+                    // }
+
+                    //foundIdx = (match.parent < idx - 1) ? parentStr.lastIndexOf(match.data) : parentStr.indexOf(match.data);
                 }
                 match.startPos = match.endPos = foundIdx + array[match.parent].startPos;
                 match.endPos += match.data.length;
@@ -81,6 +103,10 @@ class RegexContainer {
             if (re.flags.indexOf('g') === -1) return matches;
         }
         return matches;
+
+        function getGroupContent(source) {
+            return source.match(/^\((?:\?(?:<[\w_]+>|<=|<!|[!=:]))?(.*)\)(?:[*+?]\??)?$/)[1];
+        }
 
         function getGroupMappingIndex(idx, foundGroupConstructs) {
             let mapping = [];

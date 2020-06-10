@@ -1,4 +1,4 @@
-var CACHE_NAME = 'quick-regex-cache-v1';
+var CACHE_NAME = 'quick-regex-release-cache-v1';
 var urlsToCache = [
   '/',
   '/index.css',
@@ -28,9 +28,9 @@ self.addEventListener('fetch', function(event) {
     caches.match(event.request)
       .then(function(response) {
         // Cache hit - return response
-        // if (response) {
-        //   return response;
-        // }
+        if (response) {
+          return response;
+        }
 
         return fetch(event.request).then(
           function(response) {

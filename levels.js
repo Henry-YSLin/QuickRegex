@@ -67,7 +67,7 @@ let quickRegex = {
     },
     {
       title: 'Character Shorthands II - <code class="regex">\\s</code>',
-      description: 'Another useful one is <code class="regex">\\s</code>. It matches any whitespace character. Note that whitespace character includes all kinds of whitespace, not just the normal space character that is typed with the spacebar.<br><br>If you simply type a space in the regex box, you will notice that not all spaces are matched. This is because some space characters are special.',
+      description: 'Another useful shorthand is <code class="regex">\\s</code>. It matches any whitespace character. Note that whitespace character includes all kinds of whitespace, not just the normal space character that is typed with the spacebar.<br><br>If you simply type a space in the regex box, you will notice that not all spaces are matched. This is because some space characters are special.',
       targetRegex: /\s/g,
       cases: [
         'Apple apple apple',
@@ -100,7 +100,7 @@ let quickRegex = {
     },
     {
       title: 'Escaping Tokens - <code class="regex">\\.</code> <code class="regex">\\\\</code>',
-      description: 'You may have noticed by now that, since <code class="regex">.</code> has a special meaning, we cannot match a fullstop just by typing <code>.</code>. To fix this problem, prepend a backslash <code>\\</code> to the dot to escape the <code class="regex">.</code> token. i.e. <code class="regex">\\.</code> matchs a fullstop only. To match the backslash itself, prepend it with another backslash.',
+      description: 'You may have noticed by now that, since <code class="regex">.</code> has a special meaning, you cannot match a fullstop just by typing <code>.</code>. To fix this problem, prepend a backslash <code>\\</code> to the dot to escape the <code class="regex">.</code> token. i.e. <code class="regex">\\.</code> matchs a fullstop only. To match the backslash itself, prepend it with another backslash.',
       targetRegex: /\\\./g,
       cases: [
         'C:\\Users\\...',
@@ -189,7 +189,7 @@ let quickRegex = {
     {
       title: 'Capturing Groups I - <code class="regex">( )</code>',
       description: '<code class="regex">()</code> is a useful token that does 2 things: capturing and grouping. We will first cover grouping. Grouping means combining multiple units into one so that you can use quantifiers on that unit as a whole. For example, <code class="regex">abc+</code> matches "abccc" while <code class="regex">(abc)+</code> matches "abcabcabc".<br><br>Ignore the <mark class="target-highlight"><mark class="target-group-highlight">capturing groups</mark></mark> markup for now. They are related to capturing.',
-      targetRegex: /(aaab)+/g,
+      targetRegex: /(?:aaab)+/g,
       cases: [
         'aaabaaab',
         'aaabaaa',
@@ -200,7 +200,7 @@ let quickRegex = {
     {
       title: 'Capturing Groups II - <code class="regex">(( ))</code>',
       description: '<code class="regex">()</code> is very versatile. You can use any tokens (character classes, quantifiers, etc) inside <code class="regex">()</code>. You can even nest <code class="regex">()</code>. For example, <code class="regex">(a{3}b){2}</code> matches "aaabaaab" and <code class="regex">((a{3}b){2}#){2}</code> matches "aaabaaab#aaabaaab#".',
-      targetRegex: /((?:<\w+>)+#)+/g,
+      targetRegex: /(?:(?:<\w+>)+#)+/g,
       cases: [
         '<apple><orange>#<banana><berry>#',
         '<berry><banana><apple>#<orange>#',
@@ -254,7 +254,7 @@ let quickRegex = {
     },
     {
       title: 'Alternation II - <code class="regex"> |</code>',
-      description: 'When multiple options specified by the <code class="regex"> |</code> can be matched, the regex engine will choose one to match. For example, with the string "foobar", <code class="regex">foo|foobar</code> can match either "foo" or "foobar".<br><br>Different regex engines have different rules for choosing an option in this case. Some follow the "greedy" rule, which means that the engines will choose the option that will result in the longest match (i.e. these engines will choose to match "foobar" since it\'s longer). Others may follow the order specified in the expression, which means that when multiple options are available, the leftmost one will be chosen (i.e. "foo" will be matched since it comes first). Check the documentation of the regex engine you use for details.<br><br>In this app, which uses the JavaScript regex engine, the latter rule is followed, which means that the leftmost option will be chosen.',
+      description: 'When multiple options specified by the <code class="regex"> |</code> can be matched, the regex engine will choose one to match. For example, with the string "foobar", <code class="regex">foo|foobar</code> can match either "foo" or "foobar".<br><br>Different regex flavors have different rules for choosing an option in this case. Some follow the "greedy" rule, which means that these flavors will choose the option that will result in the longest match (i.e. these flavors will choose to match "foobar" since it\'s longer). Others may follow the order specified in the expression, which means that when multiple options are available, the leftmost one will be chosen (i.e. "foo" will be matched since it comes first). Check the documentation of the regex engine you use for details.<br><br>In this app, which uses the JavaScript regex flavor, the latter rule is followed, which means that the leftmost option will be chosen.',
       targetRegex: /www\.abc\.com:(8080|80|443)/g,
       cases: [
         'www.abc.com:80',
@@ -265,7 +265,7 @@ let quickRegex = {
     },
     {
       title: 'Lookaround',
-      description: 'The default anchors provided (<code class="regex">\\b</code> <code class="regex">\\B</code> <code class="regex">^</code> <code class="regex">$</code> and a few other custom ones provided by different engines) are very general and may not suit specific needs. Lookaround allows you to create more specific custom anchors. "Lookaround" is a collective term for positive/negative lookahead and positive/negative lookbehind. Since lookaround can be complex at times and have several caveats, its explanation will be split into several lessons.',
+      description: 'The default anchors provided (<code class="regex">\\b</code> <code class="regex">\\B</code> <code class="regex">^</code> <code class="regex">$</code> and a few other custom ones provided by different regex flavors) are very general and may not suit specific needs. Lookaround allows you to create more specific custom anchors. "Lookaround" is a collective term for positive/negative lookahead and positive/negative lookbehind. Since lookaround can be complex at times and have several caveats, its explanation will be split into several lessons.',
       targetRegex: null,
       cases: []
     },
@@ -293,7 +293,7 @@ let quickRegex = {
     },
     {
       title: 'Lookaround - Positive/Negative Lookahead III - <code class="regex">(?= )</code> <code class="regex">(?! )</code>',
-      description: 'Here are a few points to note regarding lookahead:<br><br>Capturing: Although lookahead is non-capturing by itself, you can capture what\'s being matched in a lookahead by nesting a <code class="regex">()</code> inside a lookahead. i.e. <code class="regex">apple (?=(juice))</code> will return "juice" as a capture when the regex matches. Note that in this case, the full match is "apple ", and the capture group is "juice", which lies outside the full match. Also be aware of the nesting order - <code class="regex">((?=juice))</code> will not return a capture since the match inside the lookahead is already discarded by the time it reaches the capturing group <code class="regex">()</code>.<br><br>Nesting: You can nest lookarounds. For example, <code class="regex">\\w+(?= (?!pie))</code> matches any word where the next word isn\'t "pie" (e.g. it matches "apple" in "apple juice").<br><br>Quantifying: Depending on the regex engine, lookarounds can sometimes be considered quantifiable (i.e. you may use quantifiers after lookarounds). The javascript regex engine that this app uses allows quantifying lookarounds in some browsers. Note that, since lookarounds do not match strings themselves, repeating them with quantifiers like <code>+</code> is meaningless. The only useful quantifiers are <code>?</code> and <code>*</code>, which behave the same and make the lookarounds optional. This behavior is not consistent though. You should check the documentation of the regex engine before using it.<br><br>Hint: In the exercise below, match the first word only if the third word doesn\'t contain "apple".',
+      description: 'Here are a few points to note regarding lookahead:<br><br>Capturing: Although lookahead is non-capturing by itself, you can capture what\'s being matched in a lookahead by nesting a <code class="regex">()</code> inside a lookahead. i.e. <code class="regex">apple (?=(juice))</code> will return "juice" as a capture when the regex matches. Note that in this case, the full match is "apple ", and the capture group is "juice", which lies outside the full match. Also be aware of the nesting order - <code class="regex">((?=juice))</code> will not return a capture since the match inside the lookahead is already discarded by the time it reaches the capturing group <code class="regex">()</code>.<br><br>Nesting: You can nest lookarounds. For example, <code class="regex">\\w+(?= (?!pie))</code> matches any word where the next word isn\'t "pie" (e.g. it matches "apple" in "apple juice").<br><br>Quantifying: Depending on the regex flavor, lookarounds can sometimes be considered quantifiable (i.e. you may use quantifiers after lookarounds). The JavaScript flavor that this app uses allows quantifying lookarounds in some browsers. Note that, since lookarounds do not match strings themselves, repeating them with quantifiers like <code>+</code> is meaningless. The only useful quantifiers are <code>?</code> and <code>*</code>, which behave the same and make the lookarounds optional. This behavior is not consistent though. You should check the documentation of the regex engine before using it.<br><br>Hint: In the exercise below, match the first word only if the third word doesn\'t contain "apple".',
       targetRegex: /^\w+(?= \w+ (?!\w*apple\w*))/g,
       cases: [
         'two more apples',
@@ -304,7 +304,7 @@ let quickRegex = {
     },
     {
       title: 'Lookaround - Positive/Negative Lookbehind I - <code class="regex">(?&lt;= )</code> <code class="regex">(?&lt;! )</code>',
-      description: 'Positive and negative lookbehind works similar to a lookahead. They are both non-capturing and do not contribute towards the full match. As the name suggests, lookbehind instructs the regex engine to look behind the current position to test for the presence or absence of a match specified by the expression inside the brackets. ',
+      description: 'Positive and negative lookbehind works in a similar way as a lookahead. They are both non-capturing and do not contribute towards the full match. As the name suggests, lookbehind instructs the regex engine to look behind the current position to test for the presence or absence of a match specified by the expression inside the brackets.<br><br>Simply put, use <code class="regex">(?&lt;= )</code> to assert the presence of something behind current position. Use <code class="regex">(?&lt;! )</code> to assert the absence of it.',
       targetRegex: /(?<=^apple )pie/g,
       cases: [
         'apple pie',
@@ -315,7 +315,7 @@ let quickRegex = {
     },
     {
       title: 'Lookaround - Positive/Negative Lookbehind II - <code class="regex">(?&lt;= )</code> <code class="regex">(?&lt;! )</code>',
-      description: 'Similar to lookaheads, lookbehinds are non-capturing but their contents can be captured with <code class="regex">()</code>. They can also be nested and quantified in some cases.<br><br>However, there is a big difference between what you can put inside lookbehinds and lookaheads. In lookaheads <code class="regex">(?= )</code> <code class="regex">(?! )</code>, you are free to put anything inside them, but in lookbehinds <code class="regex">(?&lt;= )</code> <code class="regex">(?&lt;! )</code>, many regex engines impose a restriction that what\'s inside must have a fixed length. This is because most engines need to figure out how many characters to step back before executing the expression inside the lookbehind. This means that quantifiers like <code>*</code> <code>?</code> are not allowed, and if you are using alternation <code class="regex"> |</code>, all options must be of the same length.<br><br>This fixed-length lookbehind rule applies to engines such as PCRE and python re. For some other engines, such as Java regex, a finite maximum length must be known (e.g. by specifying the second number in <code>{#,#}</code>). For a few engines, like the javascript engine implemented by most browsers and the .NET Framework Regex, full variable-length expression is allowed in lookbehind, so you can use quantifiers like <code>*</code> and <code>+</code> freely.',
+      description: 'Similar to lookaheads, lookbehinds are non-capturing but their contents can be captured with <code class="regex">()</code>. They can also be nested and quantified in some cases.<br><br>However, there is a big difference between what you can put inside lookbehinds and lookaheads. In lookaheads <code class="regex">(?= )</code> <code class="regex">(?! )</code>, you are free to put anything inside them, but in lookbehinds <code class="regex">(?&lt;= )</code> <code class="regex">(?&lt;! )</code>, many regex flavors impose a restriction that what\'s inside must have a fixed length. This is because most engines need to figure out how many characters to step back before executing the expression inside the lookbehind. This means that quantifiers like <code>*</code> <code>?</code> are not allowed, and if you are using alternation <code class="regex"> |</code>, all options must be of the same length.<br><br>This fixed-length lookbehind rule applies to flavors such as PCRE and python re. For some other flavors, such as Java regex, a finite maximum length must be known (e.g. by specifying the second number in <code>{#,#}</code>). For a few flavors, like the JavaScript flavor implemented by most browsers and the .NET Framework Regex, full variable-length expression is allowed in lookbehind, so you can use quantifiers like <code>*</code> and <code>+</code> freely.',
       targetRegex: /(?<=\(\?:).+(?=\))/g,
       cases: [
         '^(?:test)$',
@@ -326,7 +326,7 @@ let quickRegex = {
     },
     {
       title: 'Named Capturing Group - <code class="regex">(?&lt;name&gt; )</code>',
-      description: 'As introduced before, the regex engine returns data from capturing groups in addition to the full match. Usually, the engine returns an array for each match, with the zeroth element being the full match and the rest being capturing groups. For example, with the string "a b c", <code class="regex">(\\w) (\\w) (\\w)</code> returns ["a b c","a","b","c"]. Each capturing group is given a number, counting from 1, corresponding to the index of their data in the array. This number is decided by the location of the capturing group\'s opening bracket <code>(</code>. The group with the leftmost <code>(</code> gets the smallest number, 1. e.g. in <code class="regex">(a(bc)d)e(f)</code>, the first group returns "abcd", the second one "bc", the third one "f".<br><br>This numbering scheme can be confusing when the regex is complex, and editing groups may cause all group numbers to be changed. To avoid this situation, you may use names to identify groups. Named capturing groups <code class="regex">(?&lt;name&gt; )</code> function the same as normal capturing groups, but their capture results can be accessed through their names instead of their group index. For example, in JavaScript, instead of using <code>match[1]</code>, you may use <code>match.groups.groupName</code>. Group names must consist of alphanumeric characters and underscore <code>_</code> only. Named capturing groups still count towards the group index, so you can still access them with indices if necessary.<br><br>Try naming the capturing group below "areaCode".',
+      description: 'As introduced before, the regex engine returns data from capturing groups in addition to the full match. Usually, the engine returns an array for each match, with the zeroth element being the full match and the rest being capturing groups. For example, with the string "a b c", <code class="regex">(\\w) (\\w) (\\w)</code> returns ["a b c","a","b","c"]. Each capturing group is given a number, counting from 1, corresponding to the index of their data in the array. This number is decided by the location of the capturing group\'s opening bracket <code>(</code>. The group with the leftmost <code>(</code> gets the smallest number, 1. e.g. in <code class="regex">(a(bc)d)e(f)</code>, the first group returns "abcd", the second one "bc", and the third one "f".<br><br>This numbering scheme can be confusing when the regex is complex, and editing groups may cause all group numbers to be changed. To avoid this situation, you may use names to identify groups. Named capturing groups <code class="regex">(?&lt;name&gt; )</code> function the same as normal capturing groups, but their capture results can be accessed through their names instead of their group index. For example, in JavaScript, instead of using <code>match[1]</code>, you may use <code>match.groups.groupName</code>. Group names must consist of alphanumeric characters and underscore <code>_</code> only. Named capturing groups still count towards the group index, so you can still access them with indices if necessary.<br><br>Try naming the capturing group below "areaCode".',
       targetRegex: /(\+\d+)\D.*/g,
       cases: [
         '+1-202-555-0122',
@@ -337,7 +337,7 @@ let quickRegex = {
     },
     {
       title: 'Backreferences I - <code class="regex">( )\\1</code> <code class="regex">(?&lt;name&gt; )\\k&lt;name&gt;</code>',
-      description: 'Sometimes, you may want the regex to only match a string if the same phrase appears twice in the string. For example, you may want an HTML tag to only be matched if the end tag matches the start tag. This can be achieved by backreferencing. A backreferencing token can be created by specifying the group index n: <code>\\n</code> or specifying the group name for named capturing groups: <code>\\k&lt;name&gt;</code>. This token matches the exact same string as what is most recently matched by the referenced capturing group. For example, with the regex <code class="regex">(\\w)\\1</code>, if <code class="regex">(\\w)</code> matches "a", then <code class="regex">\\1</code> will also match "a", causing the regex to always match pairs of the same character. Note that the token only matches the exact string of what is recently matched by the capturing group. It does not reevaluate the expression inside the group, so <code class="regex">(\\w)\\1</code> matches "aa" but not "ab".',
+      description: 'Sometimes, you may want the regex to only match a string if the same phrase appears twice in the string. For example, you may want an HTML tag to only be matched if the end tag matches the start tag. This can be achieved by backreferencing. A backreferencing token can be created by specifying the group index n: <code>\\n</code> or specifying the group name for named capturing groups: <code>\\k&lt;name&gt;</code>. This token matches the exact same string as what is most recently matched by the referenced capturing group. For example, with the regex <code class="regex">(\\w)\\1</code>, if <code class="regex">(\\w)</code> matches "a", then <code class="regex">\\1</code> will also match "a", causing the regex to always match pairs of the same character. Note that the token only matches the exact string of what is recently matched by the capturing group. It does not reevaluate the expression inside the group, so <code class="regex">(\\w)\\1</code> matches "aa" but not "ab", even though "b" can be matched with <code class="regex">\\w</code>.',
       targetRegex: /<(\w+)>\.\.\.<\/\1>/g,
       cases: [
         '<a>...</a>',
@@ -349,7 +349,7 @@ let quickRegex = {
     {
       title: 'Backreferences II - <code class="regex">( )\\1</code> <code class="regex">(?&lt;name&gt; )\\k&lt;name&gt;</code>',
       description: 'You can use multiple backreferencing tokens referring to the same capturing group in the regex. e.g. <code class="regex">(\\w)\\1\\1\\1</code><br><br>If you are using the group index syntax <code class="regex">\\1</code>, make sure that the number is referring to an existing group, or else the regex engine will interpret it as a special character sequence, producing unexpected results.<br><br>Although you can place a backreferencing token anywhere in the regex, it is meaningless to put it before the referenced capturing group. Since the token matches what is most recently matched by the group, and the group hasn\'t even been executed once when the regex engine sees the backreferencing token, the token always matches an empty string, which succeeds every time. e.g. <code class="regex">\\1(\\w)</code> matches "a" since <code class="regex">\\1</code> matches an empty string and <code class="regex">(\\w)</code> matches "a".<br><br>Quantifiers can "cooperate" with backreferencing tokens when matching. For example, with the string "aaaaaa" and the regex <code class="regex">(\\w+)\\1</code>, the <code>+</code> inside the capturing group wants to match as much as possible, hence it should try to match "aaaaaa", causing <code class="regex">\\1</code> to also try and match "aaaaaa" and fail the whole match (since the regex should be matching 12 "a"s in total). However, the regex actually successfully matches the string, since the <code>+</code> quantifier cooperates with the token and matches "aaa" only, allowing <code class="regex">\\1</code> to also match "aaa", resulting in a successful match.',
-      targetRegex: /\w+\.(\w+)(?:,\w+\.\1){2}/g,
+      targetRegex: /\w+\.(?:\w+)(?:,\w+\.(?:txt|png)){2}/g,
       cases: [
         'a.txt,b.txt,c.txt',
         'pic.png,pic2.png,pic3.png',
@@ -377,7 +377,7 @@ let quickRegex = {
     },
     {
       title: 'Flags - Multiline - <code>m</code>',
-      description: 'The second flag is multiline <code>m</code>. This makes the anchors <code class="regex">^</code> and <code class="regex">$</code> matches the start and end of a line instead of the start and end of the whole string. This is particularly useful when you are dealing with some multiline text like logs where each line is a separate entry.<br><br>The testing area below has the flags <code>gm</code>.',
+      description: 'The second flag is multiline <code>m</code>. This makes the anchors <code class="regex">^</code> and <code class="regex">$</code> match the start and end of a line instead of the start and end of the whole string. This is particularly useful when you are dealing with some multiline text like logs where each line is a separate entry.<br><br>The testing area below has the flags <code>gm</code>.',
       targetRegex: null,
       explicitFlags: 'gm',
       cases: [
@@ -401,7 +401,7 @@ let quickRegex = {
     },
     {
       title: 'Flags - Singleline - <code>s</code>',
-      description: 'The fourth flag is singleline <code>s</code>. This makes the dot <code class="regex">.</code> match newline characters. When combined with <code>m</code>, <code class="regex">^.*$</code> matches the entire string across multiple lines.<br><br><code>gs</code> is set here.',
+      description: 'The fourth flag is singleline <code>s</code>. This makes the dot <code class="regex">.</code> match newline characters. When combined with the <code>m</code> flag, <code class="regex">^.*$</code> matches the entire string across multiple lines.<br><br><code>gs</code> is set here.',
       targetRegex: null,
       explicitFlags: 'gs',
       cases: [
@@ -413,31 +413,44 @@ let quickRegex = {
     },
     {
       title: 'Additional Flags',
-      description: 'There are also other flags provided by individual regex engines. e.g.:<br><br>The Javascript engine provides the sticky flag <code>y</code> which only proceeds to the next match if it immediately follows the previous match.<br>The PCRE engine provides a <code>U</code> flag which makes all quantifiers lazy by default.<br>The python re engine provides an ascii flag <code>a</code> which matches ASCII characters only.<br><br>There are a lot more flags in each engine that are not covered here. Check their documentations for details.',
+      description: 'There are also other flags provided by individual regex flavors. e.g.:<br><br>The Javascript flavor provides the sticky flag <code>y</code> which only proceeds to the next match if it immediately follows the previous match.<br>The PCRE flavor provides a <code>U</code> flag which makes all quantifiers lazy by default.<br>The Python flavor provides an ascii flag <code>a</code> which matches ASCII characters only.<br><br>There are a lot more flags in each flavor that are not covered here. Check their documentations for details.',
       targetRegex: null,
       cases: []
     },
     {
       title: 'Additional Features',
-      description: 'Recursion: Some regex engines, such as PCRE, have a recursion token that takes the expression from another capturing group and reevaluate it at the token\'s position. This is like using a backreferencing token, but actually reevaluating the expression instead of simply matching the resulting capture.<br>For example, in PCRE, the token <code>(?R)</code> reevaluate the entire regex at the token\'s position. This enables some advanced matching, such as matching strings with balanced opening and closing brackets and finding the corresponding end tag given the start tag in HTML.<br>In PCRE, with the regex <code>&lt;(?&lt;tag&gt;\\w+)&gt;((?R)|\\w+)&lt;\\/(\\k&lt;tag&gt;)&gt;</code>, the starting and closing "div" in "&lt;div&gt;&lt;a&gt;abc&lt;/a&gt;&lt;/div&gt;" can be captured.<br><br>Balancing groups: The .NET Regex engine has a unique function called balancing groups which can achieve similar goals as the recursion token in PCRE. The documentation of balancing groups can be found <a href="https://docs.microsoft.com/en-us/dotnet/standard/base-types/grouping-constructs-in-regular-expressions?redirectedfrom=MSDN#balancing_group_definition" target="_blank">here</a>.<br><br>Conditional statements: Some engines implements conditional statements <code>(?(condition)yes|no)</code>, which means if "condition" matches, use "yes" to match the rest of the string, otherwise use "no".<br><br>Substitution: Many regex engines also provides a "replace" function in addition to "match". The replace function uses a regex to find parts of the string and then replace them with a specified expression. That expression can use captured data from the regex to make smart replacements. e.g. <code class="regex">"(\\w+)"</code> searches for words wrapped with <code>"</code>, then <code>\'$1\'</code> replaces the double quotes with single quotes while keeping the word intact.<br><br>Atomic groups: As mentioned in Backreferences II, quantifiers can cooperate with other tokens to yield a match by giving back characters or expanding their matches as needed. This behavior can be disabled by putting the quantifiers inside an atomic group <code>(?&gt; )</code>. The atomic group allows quantifiers inside to take the highest priority, ignoring the other tokens outside the atomic group. e.g. <code>(?&gt;(\\w+))\\1</code> does not match "aaaaaa" since <code>(\\w+)</code> is inside an atomic group, causing <code>+</code> to match the entire string, ignoring the fact that it causes <code>\\1</code> to fail.<br>In fact, lookarounds are also atomic. If you wrap a capturing group inside a lookaround, the capturing group will ignore tokens outside the lookaround. e.g. <code class="regex">(\\d+)\\w+\\1</code> matches "123x12" but <code class="regex">(?=(\\d+))\\w+\\1</code> does not, since <code class="regex">\\d+</code> now matches "123", ignoring the fact that <code class="regex">\\1</code> can match "12" only, not "123".',
+      description: 'Recursion: Some regex flavors, such as PCRE, have a recursion token that takes the expression from another capturing group and reevaluate it at the token\'s position. This is like using a backreferencing token, but actually reevaluating the expression instead of simply matching the resulting capture.<br>For example, in PCRE, the token <code>(?R)</code> reevaluate the entire regex at the token\'s position. This enables some advanced matching, such as matching strings with balanced opening and closing brackets and finding the corresponding end tag given the start tag in HTML.<br>In PCRE, with the regex <code>&lt;(?&lt;tag&gt;\\w+)&gt;((?R)|\\w+)&lt;\\/(\\k&lt;tag&gt;)&gt;</code>, the outer starting and closing "div" in "&lt;div&gt;&lt;div&gt;abc&lt;/div&gt;&lt;/div&gt;" can be captured.<br><br>Balancing groups: The .NET flavor has a unique function called balancing groups which can achieve similar goals as the recursion token in PCRE. The documentation of balancing groups can be found <a href="https://docs.microsoft.com/en-us/dotnet/standard/base-types/grouping-constructs-in-regular-expressions?redirectedfrom=MSDN#balancing_group_definition" target="_blank">here</a>.<br><br>Conditional statements: Some flavors implements conditional statements <code>(?(condition)yes|no)</code>, which means if "condition" matches, use "yes" to match the rest of the string, otherwise use "no".<br><br>Substitution: Many regex flavors also provide a "replace" function in addition to "match". The replace function uses a regex to find parts of the string and then replaces them with a specified expression. That expression can use captured data from the regex to make smart replacements. e.g. <code class="regex">"(\\w+)"</code> searches for words wrapped with <code>"</code>, then <code>\'$1\'</code> replaces the double quotes with single quotes while keeping the word intact.<br><br>Atomic groups: As mentioned in Backreferences II, quantifiers can cooperate with other tokens to yield a match by giving back characters or expanding their matches as needed. This behavior can be disabled by putting the quantifiers inside an atomic group <code>(?&gt; )</code>, which is a unique syntax in some regex flavors. The atomic group allows quantifiers inside to take the highest priority, ignoring the other tokens outside the atomic group. e.g. <code>(?&gt;(\\w+))\\1</code> does not match "aaaaaa" since <code>(\\w+)</code> is inside an atomic group, causing <code>+</code> to match the entire string, ignoring the fact that it causes <code>\\1</code> to fail.<br>In fact, lookarounds are also atomic. If you wrap a capturing group inside a lookaround, the capturing group will ignore tokens outside the lookaround. e.g. <code class="regex">(\\d+)\\w+\\1</code> matches "123x12" but <code class="regex">(?=(\\d+))\\w+\\1</code> does not, since <code class="regex">\\d+</code> now matches "123", ignoring the fact that <code class="regex">\\1</code> can match "12" only, not "123".',
       targetRegex: null,
       cases: []
     },
     {
       title: 'Useful Sites',
-      description: 'Regex is notorious for its low readability, but there are great tools online that can help you build, test and debug regex painlessly.<br><br><a href="https://regex101.com/" target="_blank"><h3>Regex101</h3></a>Features:<br>PCRE, JavaScript, Python and Golang flavors supported<br>Regex explanation<br>Quick regerence<br>Regex quiz<br>Cloud save<br><br><a href="https://regexr.com/" target="_blank"><h3>RegExr</h3></a>Features:<br>PCRE and JavaScript flavors supported<br>Regex explanation<br>Quick reference<br>Community regex database<br>Cloud save<br><br><a href="https://www.debuggex.com/" target="_blank"><h3>Debuggex</h3></a>Features:<br>PCRE, JavaScript and python flavors supported<br>Graphical regex representation<br>Quick reference<br>Regex library',
+      description: 'Regex is notorious for its low readability, but there are great tools online that can help you build, test and debug regex painlessly.<br><br><a href="https://regex101.com/" target="_blank"><h3>Regex101</h3></a>Features:<br>PCRE, JavaScript, Python and Golang flavors supported<br>Regex explanation<br>Quick reference<br>Regex quiz<br>Cloud save<br><br><a href="https://regexr.com/" target="_blank"><h3>RegExr</h3></a>Features:<br>PCRE and JavaScript flavors supported<br>Regex explanation<br>Quick reference<br>Community regex database<br>Cloud save<br><br><a href="https://www.debuggex.com/" target="_blank"><h3>Debuggex</h3></a>Features:<br>PCRE, JavaScript and Python flavors supported<br>Graphical regex representation<br>Quick reference<br>Regex library',
       targetRegex: null,
       cases: []
     },
     {
       title: 'Challenges',
-      description: 'You have learned most, if not all, of the common regex tokens. Now it\'s the time to put the knowledge to use in the following series of challenges. Some of these challenges may require you to write relatively complex regex, but none requires knowledge outside of what is taught here. If you need a quick refresher of the meaning of some tokens, click on the related lesson on the navigation bar on the left. Good luck and don\'t give up!',
+      description: 'You have learned most, if not all, of the common regex tokens. Now it\'s time to put the knowledge to good use in the following series of challenges. Some of these challenges may require you to write relatively complex regex, but none requires knowledge outside of what is taught here. If you need a quick refresher of the meaning of some tokens, click on the related lesson on the navigation bar on the left. Good luck and don\'t give up!',
       targetRegex: null,
       cases: []
     },
     {
-      title: 'Challenge  - URL',
-      description: 'URLs may look complex to the human eye, but it is actually very easy to extrat information from URLs using regex due to its clear format.<br><br>Write a regex that matches valid URLs and capture the protocol, domain name, port, path and queries.',
+      title: 'Challenge I - Logs',
+      description: 'Logs are messages auto-generated by an application to record certain events. Logs usually have a fixed structure, hence it is very easy to extract info from logs using regex.<br><br>In the example below, capture the timestamp, category and message of each line of the log. The format is <code>[timestamp] category: message</code>.',
+      targetRegex: /^\[(.+)\] ([\w ]+): (.*)$/g,
+      cases: [
+        '[2020.06.10 08:40:44] App Info: reading settings...',
+        '[2020.06.10 08:40:44] Font: laoded from \':/gui/fonts/font.ttf\'',
+        '[2020.06.10 08:40:48] Message Info: bad message notification received, msgId 748923649781236, error_code 33',
+        '[2020.06.10 08:40:45] Audio Capture Devices: Microphone (Example Audio)',
+        '[2020.06.10 08:40:45] Export Info: Destroy top bar by controller removal',
+        '[2020.06.10 08:40:43] App Info: Log started',
+      ]
+    },
+    {
+      title: 'Challenge II - URLs',
+      description: 'URLs may look complex to the human eye, but it is actually very easy to extrat information from URLs using regex due to its clear format.<br><br>Write a regex that matches valid URLs and capture the protocol, domain name, port, path and queries. The format of a URL is <code>protocol://domain.name:port/path/to/file.html?query</code>',
       targetRegex: /^(https?|ftp):\/\/([\w._-]+?)(?::(\d+))?\/(.+?)?(?:\?(.*))?$/g,
       cases: [
         'https://www.google.com/',
@@ -451,7 +464,7 @@ let quickRegex = {
       ]
     },
     {
-      title: 'Challenge  - Number Formats',
+      title: 'Challenge III - Number Formats',
       description: 'Numbers can be a lot more complex than simply a bunch of digits. In this challenge, you need a regex that can match numbers in decimal (e.g. 123,456.78), scientific notation (e.g. 1.2e-9) and hexadecimal forms (0x####).',
       targetRegex: /^(?:-?(?:\d+,)?\d+(?:\.\d+)?(?:e-?\d+)?|0x[0-9a-f]+)$/g,
       cases: [
@@ -470,7 +483,7 @@ let quickRegex = {
       ]
     },
     {
-      title: 'Challenge  - Date Formats',
+      title: 'Challenge IV - Date Formats',
       description: 'Many programming languages provide parsers to convert a string into a date, but if there is no such thing provided or if the date is buried in a ton of unrelated text, regex can help you quickly locate and match the date.<br><br>In the exercise below, match all dates in the format dd-mm-yyyy or dd/mm/yyyy and capture the day, month and year. Note that the two date separators must match and the day and month must be within range, which is the hard part since regex can\'t verify a numeric range directly.',
       targetRegex: /^(?:([0-2]?[0-9]|3[01])\/(1[0-2]|[0-9])\/(\d+)|([0-2]?[0-9]|3[01])-(1[0-2]|[0-9])-(\d+))$/g,
       cases: [
@@ -485,18 +498,48 @@ let quickRegex = {
       ]
     },
     {
-      title: 'Challenge  - Email Addresses',
-      description: 'Email addresses may seem simple, but their specification is actually pretty complex. One feature in email addresses that you may not know of is plus addressing. You may use <code>username+filter@email.com</code> instead of <code>username@email.com</code> to refer to the same address, with the part after <code>+</code> functioning as a filter or tag.',
-      targetRegex: / /g,
+      title: 'Challenge V - Email Addresses',
+      description: 'Email addresses may seem simple, but their specification is actually pretty complex. One feature in email addresses that you may not know about is plus addressing. You may use <code>username+filter@email.com</code> instead of <code>username@email.com</code> to refer to the same address, with the part after <code>+</code> functioning as a filter or a tag.<br><br>Capture the username and domain for valid email addresses in the following exercise.',
+      targetRegex: /^([^ .+]+(?:\.[^ .+]+)*)(?:\+[^ +]*)?@([^ ]*)$/g,
       cases: [
-        '31/12/2099',
-        '12/31/2099',
-        '1/8/1934',
-        '31-12-2013',
-        '6/7/2020',
-        '2-3/1946',
-        '33-1-2000',
-        '2/1-2000',
+        'tom.e@mail.net',
+        'maryC092@mail.co.uk',
+        'tom.e+spam@mail.org',
+        'maryC092+filter@mail.co.uk',
+        'support @company.com',
+        'support@a bc.com',
+        'abc..def@mail.com',
+        'abc+fil ter@def.org',
+      ]
+    },
+    {
+      title: 'Challenge VI - HTML Tags',
+      description: 'Because of the complex tree structure of HTML, it\'s usually not a suitable job for regex to parse HTML. However, if you don\'t want to install heavy HTML parsing library for a very small file, it is perfectly fine to use regex.<br><br>In the following exercise, capture the tag name, class list and content of valid HTML tags.',
+      targetRegex: /^<(?<tag>\w+)(?: class="([\w -]+)"| \w+="[\w -]+"| \w+)*>(.*)<\/\k<tag>>$/g,
+      cases: [
+        '<h1>Welcome!</h1>',
+        '<span class="regex editor center"><b>Click</b></span>',
+        '<div contenteditable spellcheck="false" class="container"><div class="row"></div></div>',
+        '<p hidden class="caption-large">Text</p>',
+        '<i>Tag mismatch</b>',
+        '<span class="xz>e">Invalid class</span>',
+        '<i>No end tag',
+        'No tag at all',
+      ]
+    },
+    {
+      title: 'Challenge VII - Regex',
+      description: 'What\'s a better tool to parse regex than regex itself? Of course, balancing parentheses isn\'t a suitable job for regex without recursion or balancing groups, but there are still some tasks that regex can do.<br><br>In the following challenge, match all character classes, including their quantifiers if there are any. All cases provided are valid regexes so you don\'t need to worry about invalid syntax. Do watch out for escaped square brackets <code class="regex">\\[</code> <code class="regex">\\]</code>. You shouldn\'t treat those as openings and closings of character classes.',
+      targetRegex: /(?<!\\)(?:\[.*?(?<!\\)\](?:(?:\?|\+|\*)\??)?)/g,
+      cases: [
+        '([--:\\w?@%&+~#=]*\\.[a-z]{2,4}\\/{0,2})((?:[?&](?:\\w+)=(?:\\w+))+|[--:\\w?@%&+~#=]+)?',
+        '^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$',
+        '\\b(?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9]))\\b',
+        '#?([\\da-fA-F]{2})([\\da-fA-F]{2})([\\da-fA-F]{2})',
+        ',(?=(?:[^\\"]*\\"[^\\"]*\\")*(?![^\\"]*\\"))',
+        '\\[[^\\[\\]]*?\\]',
+        '\\[\\[?[^\\[\\]]*\\]?\\]',
+        '.*^(?!.*www.*).*(\\n)',
       ]
     },
   ]

@@ -373,7 +373,7 @@ async function updateCases() {
           updateMessage('Your regex doesn\'t match all targets');
         }
         else if (wrongCaptureGroup) {
-          updateMessage('Your regex matches correctly, but the capture groups are wrong');
+          updateMessage('Your regex matches correctly, but you are missing some capturing groups');
         }
         else {
           updateMessage('Some test cases failed');

@@ -31,13 +31,13 @@ pre.regex {
   font-family: 'Noto Mono', 'Consolas', monospace;
 
   font-size:1.1em;
-  white-space: pre-wrap;
+  white-space: break-spaces;
   word-wrap: break-word;
   vertical-align: top;
 }
 
 pre.case-text {
-  white-space: pre-wrap;
+  white-space: break-spaces;
   word-wrap: break-word;
 }
 
@@ -47,7 +47,7 @@ textarea.regex-editor {
   width: 100%;
   padding: 10px;
   grid-area: top;
-  white-space: pre-wrap;
+  white-space: break-spaces;
   word-wrap: break-word;
 
   cursor: text;
@@ -64,6 +64,10 @@ textarea.regex-editor {
 
   transition: border 500ms ease-in-out;
   transition: box-shadow 500ms ease-in-out;
+}
+
+textarea.regex-editor::selection {
+  background: #00b46959;
 }
 
 input.regex-editor:focus {
@@ -243,6 +247,7 @@ code {
   font-family: 'Noto Mono', Consolas, monospace;
   background-color: #00000011;
   color: #000000aa;
+  cursor: text;
 }
 
 main {

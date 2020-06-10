@@ -2,7 +2,8 @@
   "name": "Quick Regex - Learn Regex Step By Step",
   "short_name": "Quick Regex",
   "lang": "en-US",
-  "start_url": "./index.html",
+  "start_url": "./",
+  "scope": ".",
   "display": "standalone",
   "theme_color": "#7cb342",
   "icons": [

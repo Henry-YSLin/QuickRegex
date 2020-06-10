@@ -207,6 +207,9 @@ input.regex-editor:focus {
 html, body{
   margin:0;
   padding:0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 
   cursor: default;
 }
@@ -534,4 +537,46 @@ nav{
   100% {
     transform: scaleY(1);
   }
+}
+
+.mobile{
+  display: none;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  background-color: #6b6b6b;
+  color: #fff;
+  align-content: center;
+  overflow: hidden;
+}
+
+.mobile > div {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%)
+}
+
+.mobile p {
+  font-family: 'Noto Sans', 'Microsoft Sans Serif', Calibri, sans-serif;
+  text-align: center;
+}
+
+.mobile p.icon {
+  text-align: center;
+  transform: scale(3);
+}
+
+@media only screen and (max-width: 1024px) {
+
+  .mobile {
+    display: block;
+  }
+
+  #grid {
+    display: none;
+  }
+
 }

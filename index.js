@@ -154,7 +154,6 @@ async function nextlevel_onclick() {
       quickRegex.savedState.levelStates[quickRegex.savedState.currentLevel].unlocked = true;
       currentLevel.navElement.setAttribute('current', 'true');
       currentLevel.navElement.setAttribute('unlocked', 'true');
-      currentLevel.navElement.scrollIntoView();
       loadLevel();
     }
     document.querySelector('body').setAttribute('faded', 'false');
@@ -208,6 +207,8 @@ function loadLevel() {
 
     caseList.appendChild(clone);
   });
+
+  currentLevel.navElement.scrollIntoView();
 
   cases = caseArray;
 
